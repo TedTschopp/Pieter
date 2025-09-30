@@ -1,0 +1,554 @@
+<html>
+  <head>
+    <title>Dogs</title>
+    <meta charset="utf-8" />
+    <style>
+      html { scroll-behavior: smooth; }
+      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+      body {
+        margin: 0;
+        font-family: Helvetica, Arial, sans-serif;
+        background: linear-gradient(to bottom, #4A90E2, #50C878);
+      }
+
+      /* Nav */
+      .navbar {
+        position: sticky; top: 0; z-index: 1000;
+        background: #333; padding: 10px;
+        display: flex; justify-content: center; gap: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,.15);
+      }
+      .navbar a {
+        display: inline-block; color: #fff; text-decoration: none; font-weight: 700;
+        padding: 10px 14px; border-radius: 999px; background: #444;
+        transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+      @keyframes hop { 0%{transform:translateY(0)} 45%{transform:translateY(-8px)} 100%{transform:translateY(0)} }
+      .navbar a:hover { background:#575757; animation: hop 240ms ease-out 1; box-shadow:0 8px 14px rgba(0,0,0,.25); }
+      .navbar a:focus-visible { outline:2px solid #9fd3ff; outline-offset:2px; }
+
+      /* Layout + cards */
+      .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+      .textbox {
+        background: rgba(255,255,255,.92);
+        padding: 20px; margin: 20px 0; border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,.1);
+        scroll-margin-top: 80px;
+      }
+
+      h1, h4, h6 { margin-top: 0; color: #333; }
+      p { line-height: 1.6; color: #444; }
+      .hello { columns: 3 100px; margin-top: 10px; }
+      .bello { margin-top: 10px; font-size: 14px; color: #333; }
+
+      /* Gallery */
+      details {
+        margin-top: 15px; padding: 10px; background:#f9f9f9;
+        border-radius: 8px; border: 1px solid #ddd;
+      }
+      .image-grid {
+        display: grid; gap: 15px; margin-top: 15px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+      .image-grid img {
+        width: 100%; height: 180px; object-fit: cover;
+        border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.1);
+      }
+
+      /* Mini game */
+      #game-canvas {
+        width: 100%;
+        height: 400px;
+        display: block;
+        border-radius: 12px;
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,.08), 0 4px 10px rgba(0,0,0,.1);
+        background: linear-gradient(#bfe4ff, #eafff1); /* sky in canvas */
+      }
+      .game-controls {
+        font-size: 14px; color: #333; margin-top: 10px;
+        display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+      }
+      .pill {
+        background: #eef7ff; border: 1px solid #cfe6ff; color: #225;
+        padding: 6px 10px; border-radius: 999px;
+      }
+      .btn {
+        cursor: pointer; user-select: none;
+        background: #444; color: #fff; border: none; border-radius: 999px;
+        padding: 8px 12px; font-weight: 700;
+        transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+      }
+      .btn:hover { background:#575757; transform: translateY(-1px); box-shadow:0 6px 10px rgba(0,0,0,.12); }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar" aria-label="Section navigation">
+      <a href="#intro">Introduction</a>
+      <a href="#funfacts">Dog Fun Facts</a>
+      <a href="#names">Other Names</a>
+      <a href="#nose">Amazing Nose</a>
+      <a href="#gallery">Image Gallery</a>
+      <a href="#minigame">Mini Game</a>
+    </nav>
+
+    <div class="container">
+      <div class="textbox" id="intro">
+        <h1>Dogs</h1>
+        <p>
+          Dogs are the second most-owned pet in the United States! I have two dogs, and once one of them got hold of a candy wrapper. It was around 10:12 when I woke up to the sound of crunching. As I tried to take it away, he growled. I backed off because I didn’t want to wake up my sisters, but the dog kept eating the wrapper. You can’t imagine how annoying that sound was!
+        </p>
+        <p>
+          The three dogs I’ve had are named Bubba (the one who ate the wrapper), Tcoda, and Ari. I have no idea why they were given those names.
+        </p>
+        <h6>Bubba has passed away :(</h6>
+      </div>
+
+      <div class="textbox" id="funfacts">
+        <h4>Fun Facts About Dogs</h4>
+        <p>1. Dogs have around 18 muscles just to move their ears!</p>
+        <p>2. Like a human fingerprint, a dog’s nose is unique.</p>
+        <p>3. Weird fact: dogs may actually be able to fall in love with you.</p>
+        <p>4. Dogs only sweat through their paws — that’s why they pant so much.</p>
+        <p>5. Small dogs can hear higher-pitched sounds than big dogs.</p>
+      </div>
+
+      <div class="textbox" id="names">
+        <h4>Other Names for Dogs</h4>
+        <p>Some other words for dogs are:</p>
+        <p class="hello">doggo, doge, canine, hound, tyke, pooch, mongrel, pup, puppy, cur, doggy, mutt.</p>
+      </div>
+
+      <div class="textbox" id="nose">
+        <h4>The Amazing Nose of a Dog</h4>
+        <p class="bello">
+          Dogs possess an extraordinary sense of smell, one of their most impressive and well-developed abilities. Their olfactory system is incredibly sophisticated, with up to 300 million receptors compared to about 6 million in humans. This heightened sense makes dogs exceptionally skilled at detecting explosives, illegal drugs, and even locating missing or deceased individuals. Specially trained dogs are often employed by law enforcement and military units to sniff out bombs and narcotics, detecting even trace amounts that humans would never notice.
+        </p>
+      </div>
+
+      <div class="textbox" id="gallery">
+        <h1>Dog Image Gallery</h1>
+        <details open>
+          <summary>Images</summary>
+          <div class="image-grid">
+            <img src="https://placedog.net/600/400?id=1"  alt="Dog 1"  loading="lazy">
+            <img src="https://placedog.net/600/400?id=2"  alt="Dog 2"  loading="lazy">
+            <img src="https://placedog.net/600/400?id=3"  alt="Dog 3"  loading="lazy">
+            <img src="https://placedog.net/600/400?id=4"  alt="Dog 4"  loading="lazy">
+            <img src="https://placedog.net/600/400?id=5"  alt="Dog 5"  loading="lazy">
+            <img src="https://placedog.net/600/400?id=6"  alt="Dog 6"  loading="lazy">
+            <img src="https://placedog.net/600/400?id=7"  alt="Dog 7"  loading="lazy">
+            <img src="https://placedog.net/600/400?id=8"  alt="Dog 8"  loading="lazy">
+            <img src="https://placedog.net/600/400?id=9"  alt="Dog 9"  loading="lazy">
+            <img src="https://placedog.net/600/400?id=10" alt="Dog 10" loading="lazy">
+          </div>
+        </details>
+      </div>
+
+      <!-- ===== Mini Game Section ===== -->
+      <div class="textbox" id="minigame">
+        <h1>Mini Game: Pup on the Hills</h1>
+        <canvas id="game-canvas" width="900" height="400" aria-label="Dog roaming hills game"></canvas>
+        <div class="game-controls">
+          <span class="pill">Move: A / ← and D / →</span>
+          <span class="pill">Jump: W / ↑ / Space</span>
+          <span class="pill">Slow/Stop: S / ↓</span>
+          <button class="btn" id="reset-btn" title="Reset position">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const resetBtn = document.getElementById('reset-btn');
+
+        /* ================= HiDPI fit ================= */
+        function fitCanvas() {
+          const ratio = window.devicePixelRatio || 1;
+          const rect = canvas.getBoundingClientRect();
+          canvas.width  = Math.floor(rect.width * ratio);
+          canvas.height = Math.floor(rect.height * ratio);
+          ctx.setTransform(ratio, 0, 0, ratio, 0, 0); // draw in CSS pixels
+        }
+        fitCanvas();
+        window.addEventListener('resize', fitCanvas);
+
+        /* ================= World & terrain ================= */
+        const state = {
+          t: 0,
+          gravity: 0.6,
+          friction: 0.86,
+          accel: 0.9,
+          maxSpeed: 6.2,
+          jumpPower: 12.4,
+          cameraX: 0,
+          baseY() { return canvas.clientHeight / 2.05; },
+          amp: 64,
+          wavelength: 420,
+          parallax: 0.4,
+          score: 0
+        };
+
+        function groundY(worldX, amp = state.amp, wave = state.wavelength, base = state.baseY()) {
+          return base + amp * Math.sin(worldX / wave);
+        }
+
+        /* ================= Player (dog) ================= */
+        const dog = {
+          x: 0, y: 0, vx: 0, vy: 0,
+          onGround: false, radius: 14, facing: 1 // 1=right, -1=left
+        };
+        function placeDogAt(x) {
+          dog.x = x; dog.vx = 0; dog.vy = 0;
+          dog.y = groundY(dog.x) - dog.radius - 2;
+          dog.onGround = true; dog.facing = 1;
+        }
+        placeDogAt(0);
+
+        /* ================= Input ================= */
+        const keys = { left: false, right: false, up: false, down: false };
+        function keyMap(e, val) {
+          switch (e.code) {
+            case 'ArrowLeft': case 'KeyA': keys.left = val; break;
+            case 'ArrowRight': case 'KeyD': keys.right = val; break;
+            case 'ArrowUp': case 'KeyW': case 'Space': keys.up = val; break;
+            case 'ArrowDown': case 'KeyS': keys.down = val; break;
+          }
+        }
+        window.addEventListener('keydown', (e) => {
+          keyMap(e, true);
+          if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
+        }, { passive: false });
+        window.addEventListener('keyup', (e) => keyMap(e, false));
+        resetBtn.addEventListener('click', () => { state.score = 0; placeDogAt(0); seedTreats(); seedHouses(); });
+
+        /* ================= Houses (platforms) ================= */
+        // Each house is a platform you can stand on (roof ridge approximated as flat).
+        const houses = [];
+        function seedHouses() {
+          houses.length = 0;
+          let x = -300;
+          for (let i = 0; i < 18; i++) {
+            x += 520 + Math.random()*240;                 // spacing
+            const bodyW = 70 + Math.random()*35;          // 70-105
+            const bodyH = 42 + Math.random()*18;          // 42-60
+            const roofH = 22 + Math.random()*10;          // 22-32
+            houses.push({ x, bodyW, bodyH, roofH });
+          }
+        }
+        seedHouses();
+
+        function houseRoofTopY(worldX, bodyH, roofH) {
+          // Ridge point of the gable roof
+          const gy = groundY(worldX);
+          return gy - bodyH - roofH;
+        }
+
+        /* ================= Treats (harder) ================= */
+        // Many treats are above roofs or floating higher; fewer & farther.
+        const treats = [];
+        function addTreat(x, yMode='auto') {
+          // yMode: 'roof' (above nearest house), 'high' (floating), 'auto' (slightly above ground)
+          let y;
+          if (yMode === 'roof') {
+            // find nearest house
+            let nearest = null, best = Infinity;
+            for (const h of houses) {
+              const d = Math.abs(h.x - x);
+              if (d < best) { best = d; nearest = h; }
+            }
+            if (nearest) {
+              const ry = houseRoofTopY(nearest.x, nearest.bodyH, nearest.roofH);
+              y = ry - 24 - Math.random()*12; // a bit above ridge
+              x = nearest.x + (Math.random()*0.5 - 0.25) * (nearest.bodyW * 0.8); // keep near ridge
+            } else {
+              y = groundY(x) - 60;
+            }
+          } else if (yMode === 'high') {
+            y = groundY(x) - (70 + Math.random()*40); // floating high
+          } else {
+            y = groundY(x) - (40 + Math.random()*20);
+          }
+          treats.push({ x, baseY: y, collected: false, phase: Math.random()*Math.PI*2 });
+        }
+
+        function seedTreats() {
+          treats.length = 0;
+          let x = -200;
+          for (let i = 0; i < 14; i++) {
+            x += 420 + Math.random()*320; // farther apart -> harder
+            const mode = (i % 3 === 0) ? 'roof' : (i % 3 === 1 ? 'high' : 'auto');
+            addTreat(x, mode);
+          }
+        }
+        seedTreats();
+
+        function respawnTreatAhead() {
+          // Spawn much farther ahead & usually above a roof
+          const farX = Math.max(dog.x, ...treats.map(t => t.x));
+          addTreat(farX + 600 + Math.random()*400, Math.random() < 0.6 ? 'roof' : 'high');
+        }
+
+        /* ================= Update / Physics ================= */
+        function update() {
+          // Horizontal control
+          if (keys.left)  { dog.vx -= state.accel; dog.facing = -1; }
+          if (keys.right) { dog.vx += state.accel; dog.facing =  1; }
+          dog.vx *= state.friction;
+          dog.vx = Math.max(-state.maxSpeed, Math.min(state.maxSpeed, dog.vx));
+
+          // Gravity & base integration
+          dog.vy += state.gravity;
+          const gy = groundY(dog.x);
+          const feet = dog.y + dog.radius;
+          const targetGroundY = gy - 2;
+
+          // Move
+          dog.x += dog.vx;
+          dog.y += dog.vy;
+
+          // Platform collision (house roofs)
+          let onPlatform = false;
+          for (const h of houses) {
+            const left = h.x - h.bodyW/2 + 6;
+            const right = h.x + h.bodyW/2 - 6;
+            const platY = houseRoofTopY(h.x, h.bodyH, h.roofH) + 3; // small padding (flat ridge)
+            if (dog.x > left && dog.x < right) {
+              // If falling and feet cross the platform from above -> land
+              if (feet >= platY && (dog.y - dog.vy) + dog.radius <= platY) {
+                dog.y = platY - dog.radius;
+                dog.vy = 0;
+                onPlatform = true;
+                break;
+              }
+            }
+          }
+
+          // Ground collision
+          if (!onPlatform) {
+            if (dog.y + dog.radius >= targetGroundY) {
+              dog.y = targetGroundY - dog.radius;
+              if (dog.vy > 0) dog.vy = 0;
+              dog.onGround = true;
+            } else {
+              dog.onGround = false;
+            }
+          } else {
+            dog.onGround = true;
+          }
+
+          // Jump
+          if (keys.up && dog.onGround) {
+            dog.vy = -state.jumpPower;
+            dog.onGround = false;
+          }
+
+          // Optional slow/stop
+          if (keys.down && Math.abs(dog.vx) > 0.2) dog.vx *= 0.75;
+
+          // Camera follows
+          state.cameraX = dog.x;
+
+          // Treat bobbing + collection
+          for (const t of treats) {
+            if (t.collected) continue;
+            t.phase += 0.03;
+            const bob = Math.sin(t.phase) * 4; // gentle bob
+            const tx = t.x;
+            const ty = t.baseY + bob;
+
+            const dx = Math.abs(dog.x - tx);
+            const dy = Math.abs((dog.y) - ty);
+            if (dx < 20 && dy < 24) {
+              t.collected = true;
+              state.score += 1;
+              respawnTreatAhead();
+            }
+          }
+        }
+
+        /* ================= Draw helpers ================= */
+        function drawHills(colorTop, colorBottom, ampScale, speedScale) {
+          const w = canvas.clientWidth;
+          const h = canvas.clientHeight;
+          ctx.beginPath();
+          const startX = state.cameraX - w/2;
+          for (let sx = 0; sx <= w; sx += 4) {
+            const worldX = startX + sx;
+            const y = groundY(worldX * speedScale, state.amp * ampScale, state.wavelength, state.baseY());
+            if (sx === 0) ctx.moveTo(sx, y);
+            else ctx.lineTo(sx, y);
+          }
+          ctx.lineTo(w, h);
+          ctx.lineTo(0, h);
+          ctx.closePath();
+
+          const grd = ctx.createLinearGradient(0, state.baseY(), 0, h);
+          grd.addColorStop(0, colorTop);
+          grd.addColorStop(1, colorBottom);
+          ctx.fillStyle = grd;
+          ctx.fill();
+        }
+
+        function drawHouse(h) {
+          const w = canvas.clientWidth;
+          const sx = (h.x - state.cameraX) + w/2;
+          if (sx < -120 || sx > w + 120) return;
+          const gy = groundY(h.x);
+
+          // Wall body
+          const bodyW = h.bodyW, bodyH = h.bodyH, roofH = h.roofH;
+          const baseY = gy - 4;
+          ctx.fillStyle = '#f3e6d6';
+          ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+          ctx.lineWidth = 1.5;
+          ctx.fillRect(sx - bodyW/2, baseY - bodyH, bodyW, bodyH);
+          ctx.strokeRect(sx - bodyW/2, baseY - bodyH, bodyW, bodyH);
+
+          // Roof (gable with slight shading)
+          ctx.beginPath();
+          ctx.moveTo(sx - bodyW/2 - 4, baseY - bodyH);
+          ctx.lineTo(sx, baseY - bodyH - roofH);
+          ctx.lineTo(sx + bodyW/2 + 4, baseY - bodyH);
+          ctx.closePath();
+          const roofGrad = ctx.createLinearGradient(sx, baseY - bodyH - roofH, sx, baseY - bodyH);
+          roofGrad.addColorStop(0, '#b56551');
+          roofGrad.addColorStop(1, '#8f4a3a');
+          ctx.fillStyle = roofGrad;
+          ctx.fill();
+
+          // Chimney
+          ctx.fillStyle = '#8f4a3a';
+          ctx.fillRect(sx + bodyW*0.18, baseY - bodyH - roofH + 6, 10, 18);
+
+          // Door
+          ctx.fillStyle = '#6b4e3d';
+          ctx.fillRect(sx - bodyW*0.25, baseY - 24, 16, 24);
+          ctx.fillStyle = '#d2b48c';
+          ctx.beginPath(); ctx.arc(sx - bodyW*0.25 + 12, baseY - 12, 2, 0, Math.PI*2); ctx.fill();
+
+          // Windows
+          ctx.fillStyle = '#cfe6ff';
+          ctx.fillRect(sx + bodyW*0.15, baseY - bodyH + 10, 18, 14);
+          ctx.fillRect(sx + bodyW*0.35, baseY - bodyH + 10, 18, 14);
+
+          // Little step
+          ctx.fillStyle = '#cdbfaa';
+          ctx.fillRect(sx - bodyW*0.27, baseY - 6, 20, 6);
+
+          // (platform is at the ridge—flat approximation handled in collision)
+        }
+
+        function drawDog() {
+          const w = canvas.clientWidth;
+          const x = w/2;                 // screen center (camera)
+          const y = dog.y;
+          const f = dog.facing;          // 1 or -1
+
+          // Shadow
+          ctx.fillStyle = 'rgba(0,0,0,0.20)';
+          ctx.beginPath();
+          ctx.ellipse(x, y + dog.radius + 6, dog.radius*0.9, dog.radius*0.4, 0, 0, Math.PI*2);
+          ctx.fill();
+
+          // Body
+          ctx.fillStyle = '#6b4e3d';
+          ctx.beginPath();
+          ctx.arc(x, y, dog.radius, 0, Math.PI*2);
+          ctx.fill();
+
+          // Head (flips with facing)
+          ctx.beginPath();
+          ctx.arc(x + f*dog.radius*0.9, y - dog.radius*0.3, dog.radius*0.8, 0, Math.PI*2);
+          ctx.fill();
+
+          // Ear
+          ctx.fillStyle = '#5a4032';
+          ctx.beginPath();
+          ctx.moveTo(x + f*dog.radius*0.9, y - dog.radius*1.4);
+          ctx.lineTo(x + f*dog.radius*1.4, y - dog.radius*0.6);
+          ctx.lineTo(x + f*dog.radius*0.5, y - dog.radius*0.8);
+          ctx.closePath();
+          ctx.fill();
+
+          // Eye
+          ctx.fillStyle = '#111';
+          ctx.beginPath();
+          ctx.arc(x + f*dog.radius*1.2, y - dog.radius*0.45, 2.5, 0, Math.PI*2);
+          ctx.fill();
+
+          // Tail (mirror with facing, slight wag)
+          const wag = Math.sin(state.t * 0.35) * Math.min(1, Math.abs(dog.vx)/state.maxSpeed);
+          ctx.strokeStyle = '#5a4032';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(x - f*dog.radius*0.9, y - dog.radius*0.2);
+          ctx.quadraticCurveTo(
+            x - f*dog.radius*1.6, y - dog.radius*(0.6 + 0.3*wag),
+            x - f*dog.radius*1.1, y - dog.radius*(1.0 + 0.4*wag)
+          );
+          ctx.stroke();
+        }
+
+        function drawBone(screenX, screenY) {
+          ctx.fillStyle = '#fff8d6';
+          ctx.strokeStyle = '#d9c99a';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.roundRect(screenX - 12, screenY - 5, 24, 10, 4);
+          ctx.fill(); ctx.stroke();
+          for (const m of [-1, 1]) {
+            ctx.beginPath();
+            ctx.arc(screenX + m*16, screenY - 6, 6, 0, Math.PI*2);
+            ctx.arc(screenX + m*16, screenY + 6, 6, 0, Math.PI*2);
+            ctx.fill(); ctx.stroke();
+          }
+        }
+
+        /* ================= Render ================= */
+        function render() {
+          const w = canvas.clientWidth;
+          const h = canvas.clientHeight;
+          ctx.clearRect(0, 0, w, h); // (sky is CSS)
+
+          // Far & near hills
+          drawHills('#a4d6a7', '#6bbf73', 0.5, state.parallax);
+          drawHills('#74c69d', '#40916c', 1.0, 1.0);
+
+          // Houses (decor + platforms)
+          for (const h of houses) drawHouse(h);
+
+          // Treats (visible & not collected)
+          for (const t of treats) {
+            if (t.collected) continue;
+            const sx = (t.x - state.cameraX) + w/2;
+            if (sx < -40 || sx > w + 40) continue;
+            const sy = t.baseY + Math.sin(t.phase)*4;
+            drawBone(sx, sy);
+          }
+
+          // Dog
+          drawDog();
+
+          // HUD (score)
+          ctx.fillStyle = 'rgba(0,0,0,0.35)';
+          ctx.fillRect(10, 10, 120, 34);
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold 16px Helvetica, Arial, sans-serif';
+          ctx.fillText('Score: ' + state.score, 18, 32);
+        }
+
+        /* ================= Main loop ================= */
+        function loop() {
+          state.t += 1;
+          update();
+          render();
+          requestAnimationFrame(loop);
+        }
+        loop();
+      })();
+    </script>
+  </body>
+</html>
