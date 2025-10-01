@@ -3,199 +3,198 @@
 <head>
   <meta charset="UTF-8">
   <title>Cats Website</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --accent-start: #00ff99;
-      --accent-end: #33ccff;
-      --text-color: #333;
-      --transition-time: 0.55s;
-    }
     body {
       font-family: "Helvetica", Arial, sans-serif;
       margin: 0;
-      background: linear-gradient(to bottom, var(--accent-start), var(--accent-end));
+      background: linear-gradient(to bottom, #00ff99, #33ccff);
       color: #444;
       scroll-behavior: smooth;
       overflow-x: hidden;
+      perspective: 1000px; /* 3D perspective */
     }
+
     header {
-      background: #222;
+      background: #333;
       padding: 10px 20px;
       position: sticky;
       top: 0;
       z-index: 100;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
+
     nav {
       display: flex;
       justify-content: center;
       gap: 25px;
       font-family: 'Fredoka One', cursive;
     }
+
     nav a {
-      color: #fff;
+      color: white;
       text-decoration: none;
       font-weight: 700;
-      font-size: 1.05rem;
-      padding: 6px 14px;
+      font-size: 1.2rem;
+      padding: 5px 10px;
       border-radius: 8px;
-      transition: background 0.3s, color 0.3s, transform 0.4s;
-      position: relative;
+      transition: all 0.3s ease;
     }
-    nav a:focus-visible {
-      outline: 3px solid #ffcc00;
-      outline-offset: 3px;
-    }
+
     nav a:hover,
     nav a.active {
       color: #ffcc00;
-      background-color: rgba(255,255,255,0.15);
-      transform: scale(1.15) rotate(-2deg);
-      text-shadow: 0 0 6px #ffcc00, 0 0 10px var(--accent-end);
+      background-color: rgba(255,255,255,0.2);
+      transform: rotate(-3deg) scale(1.2);
+      text-shadow: 0 0 8px #ffcc00, 0 0 16px #33ccff;
     }
+
     main {
-      padding: 60px 20px 120px;
-      max-width: 880px;
+      padding: 50px 20px;
+      max-width: 900px;
       margin: auto;
     }
+
     section {
-      margin-bottom: 90px;
+      margin-bottom: 80px; /* extra spacing to fix overlap issue */
     }
-    section:target h2,
-    section:target h1 {
-      outline: 0;
+
+    h1, h2, p, img {
+      opacity: 0;
+      transform: scale(0.6) translateZ(-200px); /* start slightly away */
+      transform-style: preserve-3d;
+      transition: all 0.9s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
+
+    h1.visible, h2.visible, p.visible, img.visible {
+      opacity: 1;
+      transform: scale(1) translateZ(0);
+    }
+
     h1, h2 {
       font-family: 'Comic Neue', cursive;
-      color: var(--text-color);
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.08);
-      scroll-margin-top: 90px; /* offset for sticky header */
+      color: #333;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
     }
+
     h1 {
-      font-size: clamp(2.2rem, 4.5vw, 2.8rem);
+      font-size: 2.5rem;
       margin-bottom: 25px;
     }
+
     h2 {
-      font-size: clamp(1.8rem, 4vw, 2.2rem);
-      margin-top: 40px;
+      font-size: 2rem;
+      margin-top: 50px;
       margin-bottom: 20px;
       position: relative;
     }
+
     h2::after {
       content: '';
       display: block;
       width: 0;
       height: 4px;
-      background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+      background: linear-gradient(90deg, #00ff99, #33ccff);
       transition: width 0.5s ease;
       border-radius: 2px;
-      margin-top: 6px;
+      margin-top: 5px;
     }
+
     h2:hover::after {
       width: 100%;
     }
+
     p {
-      font-size: 1.08rem;
-      line-height: 1.65;
-      margin-bottom: 22px;
-      max-width: 70ch;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 25px;
     }
+
     img {
       display: block;
-      margin: 25px auto;
+      margin: 20px auto;
       max-width: 100%;
       height: auto;
-      border-radius: 14px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-    }
-    /* Entrance animation */
-    .fade-in {
-      opacity: 0;
-      transform: translateY(28px);
-      transition: opacity var(--transition-time) ease, transform var(--transition-time) cubic-bezier(0.25,0.8,0.25,1);
-      will-change: opacity, transform;
-    }
-    .fade-in.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .fade-in,
-      .fade-in.visible,
-      nav a,
-      h2::after {
-        transition: none !important;
-        transform: none !important;
-      }
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
   </style>
 </head>
 <body>
-  <header>
-    <nav>
-      <a href="https://pieter.tschopp.org" target="_blank" rel="noopener noreferrer">Home Page</a>
-      <a href="#facts">Cat Facts</a>
-      <a href="#feisty">How Cats Are Feisty</a>
-      <a href="#about">About This Site</a>
-    </nav>
-  </header>
-  <main id="main">
-    <section id="facts">
-      <h1 class="fade-in">This is a cat website — enjoy!</h1>
-      <p class="fade-in">Cats are one of the most common pets in the world. They have whiskers that help them sense the air around them so they know what’s nearby. Today, you can find thousands of breeds, personalities, and coat patterns adored by people everywhere.</p>
-      <p class="fade-in">Sometimes when cats are grooming and you pet them, they might bite or grab you — not because they’re mean, but because they think you’re interrupting their routine or they misread your movement. Cats also sleep a lot—often 12–16 hours a day.</p>
-      <img class="fade-in" src="cat.jpg" alt="Orange tabby cat lounging on a windowsill" loading="lazy">
-    </section>
-    <section id="feisty">
-      <h2 class="fade-in">How cats are feisty</h2>
-      <p class="fade-in">Cats can be little daredevils! They love to knock things over, scratch, and run around the house at lightning speed. Some cats love going outside—eating grass, rolling on the ground, roaming like tiny explorers.</p>
-      <p class="fade-in">Owning a cat is a lot of fun, but also a lot of work. You have to clean up after them, provide enrichment, trim claws or supply scratching posts, and keep litter boxes tidy. They reward you with companionship and quirky charm.</p>
-    </section>
-    <section id="about">
-      <h2 class="fade-in">About This Site</h2>
-      <p class="fade-in">This website was created by <strong>Pieter Tschopp</strong> as his very first website. Pieter has always loved cats and wanted a space to share fun facts, cute pictures, and stories.</p>
-      <p class="fade-in">While the site is simple, it is a stepping stone in Pieter’s journey into web development. He built it from scratch using HTML, CSS, and a small bit of JavaScript for animations and navigation highlighting.</p>
-      <p class="fade-in">Future plans include interactive features, mini‑games, and animations to make exploring cats even more exciting. For now, visitors can enjoy learning about feline behavior and personality.</p>
-      <p class="fade-in">Pieter hopes this encourages beginners to build their own sites. Every iteration is progress—keep experimenting!</p>
-    </section>
-  </main>
-  <script>
-    // Intersection Observer for fade-in
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if(entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          // Only animate once:
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.15 });
 
-    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+<header>
+  <nav>
+    <a href="https://pieter.tschopp.org" target="_blank">Home Page</a>
+    <a href="#facts">Cat Facts</a>
+    <a href="#feisty">How Cats Are Feisty</a>
+    <a href="#about">About This Site</a>
+  </nav>
+</header>
 
-    // Dynamic nav highlighting
-    const sections = [...document.querySelectorAll('main section')];
-    const navLinks = document.querySelectorAll('nav a[href^="#"]');
+<main>
+  <section>
+    <h1 id="facts">This is a cat website — enjoy!</h1>
+    <p>Cats are one of the <em>most</em> common pets in the world. They have whiskers that help them sense the air around them so they know what’s nearby. Today, you can find <b>thousands</b> of videos and pictures of cats online.</p>
 
-    function onScroll() {
-      const scrollPos = window.scrollY + 160; // offset for sticky header
-      let currentId = sections[0].id; // default to first
-      for (const section of sections) {
-        if (scrollPos >= section.offsetTop) {
-          currentId = section.id;
-        } else {
-          break;
-        }
+    <p>Sometimes when cats are grooming and you pet them, they might bite or grab you — not because they’re mean, but because they think you’re a predator. Cats also sleep a <em>lot</em> — sometimes up to 16 hours a day!</p>
+
+    <img src="https://t3.gstatic.com/licensed-image?q=tbn:ANd9GcQ5pAUkFjASncLgVEsqVbwyTj0LP1ObO85jakWZEibYYmjHzzQux9-C1zQ2DXiZnAldF_l5_EXyZXQqQf4" alt="A cute cat">
+  </section>
+
+  <section>
+    <h2 id="feisty">How cats are feisty</h2>
+    <p>Cats are little daredevils! They love to knock things over, scratch, and run around the house at lightning speed. Some cats love going outside — eating grass, rolling on the ground, roaming the backyard, and chasing little critters.</p>
+
+    <p>Owning a cat is a lot of fun, but also a lot of work. You have to clean up after them, repair things they knock down, and of course, take care of their litter box. But if you can handle the chaos, you’ll have a loyal little friend.</p>
+  </section>
+
+  <section>
+    <h2 id="about">About This Site</h2>
+    <p>This website was created by <b>Pieter Tschopp</b> as his very first website. Pieter has always loved cats and wanted to make a space where he could share fun facts, cute pictures, and stories about cats with everyone.</p>
+
+    <p>While this site is simple, it is a stepping stone in Pieter’s journey into web development. He built it from scratch using HTML and CSS, carefully designing the layout, fonts, colors, and navigation to make it fun and easy to explore.</p>
+
+    <p>Future plans for the site include interactive features, mini-games, and animations to make exploring cats even more exciting. For now, visitors can enjoy learning about the fascinating behaviors, quirky habits, and adorable antics of cats from around the world.</p>
+
+    <p>Pieter hopes this website inspires others to appreciate the charm of cats and encourages beginners to start building their own websites. Every line of code, every color choice, and every cat fact was carefully considered to make this site a welcoming and playful experience.</p>
+  </section>
+</main>
+
+<script>
+  // Intersection Observer for 3D pop effect
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      } else {
+        entry.target.classList.remove('visible'); // allows animation to happen again
       }
-      navLinks.forEach(link => {
-        const target = link.getAttribute('href').substring(1);
-        link.classList.toggle('active', target === currentId);
-      });
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll(); // initialize on load
-  </script>
+    });
+  }, { threshold: 0.2 }); // trigger earlier for smaller spacing
+
+  document.querySelectorAll('h1, h2, p, img').forEach(el => observer.observe(el));
+
+  // Dynamic nav highlighting
+  const sections = document.querySelectorAll('main section');
+  const navLinks = document.querySelectorAll('nav a[href^="#"]');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(section => {
+      const sectionTop = section.offsetTop - 150;
+      if (window.scrollY >= sectionTop) {
+        current = section.querySelector('h1, h2')?.id || '';
+      }
+    });
+
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+      if(link.getAttribute('href') === '#' + current) {
+        link.classList.add('active');
+      }
+    });
+  });
+</script>
+
 </body>
 </html>
