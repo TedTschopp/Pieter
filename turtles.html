@@ -82,6 +82,29 @@
       background: linear-gradient(90deg, var(--accent), var(--accent-2));
     }
 
+    .intro-images {
+      display: flex;
+      justify-content: space-between;
+      gap: 1.5rem;
+      width: min(1100px, 92%);
+      margin: 1.5rem auto 0;
+    }
+
+    .intro-figure {
+      flex: 1;
+      max-width: 280px;
+    }
+
+    .intro-photo {
+      width: 100%;
+      display: block;
+      border-radius: 16px;
+      border: 1px solid #e4e9f6;
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12);
+      object-fit: cover;
+      aspect-ratio: 3/4;
+    }
+
     .grid {
       display: grid;
       gap: 1.25rem;
@@ -261,6 +284,13 @@
       margin-top: 1rem;
     }
 
+    @media (max-width: 900px) {
+      .intro-images {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .card {
         transition: none;
@@ -275,12 +305,19 @@
       <p>From gentle sea turtles to curious box turtles—discover species, habitats, and conservation status.</p>
       <div class="badge" aria-label="dedication">For Ms. Walker</div>
     </header>
+  <div class="intro-images">
+      <figure class="intro-figure">
+        <img alt="Turtle resting on a rock" class="intro-photo" loading="lazy" src="/img/turtle.jpg" />
+        <figcaption>A land turtle enjoying a warm sunbeam.</figcaption>
+      </figure>
+      <figure class="intro-figure">
+        <img alt="Sea turtle swimming through clear water" class="intro-photo" loading="lazy"
+          src="/img/Sea turtle swimming in the ocean.jpeg" />
+        <figcaption>A sea turtle gliding through tropical blue waters.</figcaption>
+      </figure>
+    </div>
     <main class="container grid" id="content">
         <section class="card" aria-labelledby="choose-title">
-          <figure>
-            <img alt="Turtle resting on a rock" class="photo" loading="lazy" src="/img/turtle.jpg" />
-            <figcaption>A land-dwelling turtle basking in the sun.</figcaption>
-          </figure>
             <h2 id="choose-title" class="section-title">Choose a turtle</h2>
             <p class="muted">Pick a species or group to explore.</p>
 
