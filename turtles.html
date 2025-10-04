@@ -82,24 +82,6 @@
       background: linear-gradient(90deg, var(--accent), var(--accent-2));
     }
 
-    .content-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 1.5rem;
-      width: min(1200px, 94%);
-      margin-inline: auto;
-    }
-
-    .side-image {
-      width: 220px;
-      max-width: 220px;
-      aspect-ratio: 3 / 4;
-      object-fit: cover;
-      border-radius: 16px;
-      border: 1px solid #e4e9f6;
-      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12);
-    }
-
     .grid {
       display: grid;
       gap: 1.25rem;
@@ -279,16 +261,6 @@
       margin-top: 1rem;
     }
 
-    @media (max-width: 900px) {
-      .content-row {
-        flex-direction: column;
-      }
-
-      .side-image {
-        display: none;
-      }
-    }
-
     @media (prefers-reduced-motion: reduce) {
       .card {
         transition: none;
@@ -303,10 +275,12 @@
       <p>From gentle sea turtles to curious box turtles—discover species, habitats, and conservation status.</p>
       <div class="badge" aria-label="dedication">For Ms. Walker</div>
     </header>
-    <div class="content-row">
-  <img alt="Turtle resting on a rock" class="side-image" loading="lazy" src="/img/turtle.jpg">
-      <main class="container grid" id="content">
+    <main class="container grid" id="content">
         <section class="card" aria-labelledby="choose-title">
+          <figure>
+            <img alt="Turtle resting on a rock" class="photo" loading="lazy" src="/img/turtle.jpg" />
+            <figcaption>A land-dwelling turtle basking in the sun.</figcaption>
+          </figure>
             <h2 id="choose-title" class="section-title">Choose a turtle</h2>
             <p class="muted">Pick a species or group to explore.</p>
 
@@ -437,8 +411,6 @@
           </article>
         </section>
       </main>
-  <img alt="Turtle basking in the sun" class="side-image" loading="lazy" src="/img/turtle.jpg">
-    </div>
 
     <footer>
         <small>Inspired in part by public sources (e.g., Wikipedia). Always cross-check with authoritative conservation
