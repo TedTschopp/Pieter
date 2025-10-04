@@ -1,23 +1,12 @@
 <!doctype html>
 <html lang="en">
-
-<head>
-    
-  <meta charset="utf-8" />
-    
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Turtles — Learn & Explore</title>
-    <style>
-    :root {
-      --bg: #f4f7ff;
-      --bg-soft: #eef2ff;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #475569;
-      --accent: #2563eb;
-      --accent-2: #0891b2;
-      --ring: #60a5fa33;
-      --ok: #16a34a;
+    body {
+      margin: 0;
+      font: 16px/1.55 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 15% -10%, #93c5fd22, transparent),
+        radial-gradient(800px 500px at 100% 10%, #22d3ee22, transparent),
+        var(--bg);
     }
 
     *,
@@ -244,6 +233,57 @@
       padding: 2rem 0 3rem;
     }
 
+    /* Layout for side images flanking main content */
+    .content-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      width: min(1200px, 94%);
+      margin-inline: auto;
+    }
+
+    .side-image {
+      width: 220px;
+      max-width: 220px;
+      aspect-ratio: 3 / 4;
+      object-fit: cover;
+      border-radius: 16px;
+      border: 1px solid #e4e9f6;
+      box-shadow: 0 4px 18px rgba(15, 23, 42, .12);
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .section-divider {
+      border: 0;
+      border-top: 1px solid #e5e9f5;
+      margin: 1rem 0;
+      opacity: .7;
+    }
+
+    .mt-xs {
+      margin-top: .5rem;
+    }
+
+    .mt-md {
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .content-row {
+        flex-direction: column;
+      }
+
+      .side-image {
+        display: none;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .card {
         transition: none;
@@ -254,24 +294,13 @@
 
 <body>
     <header class="hero container">
-        <h1>Find everything you want to know about <br><span
-        style="background:linear-gradient(90deg,var(--accent),var(--accent-2)); -webkit-background-clip:text; background-clip:text; color:transparent;">Turtles</span>
-    </h1>
-        <p>From gentle sea turtles to curious box turtles—discover species, habitats, and conservation status.</p>
-        <div class="badge" aria-label="dedication">For Ms. Walker</div>
-      </header>
-      <table><tr><td>
-        <img alt="Picture of Turtle" class="photo"
-          src="/img/turtle.jpg">
-
-
-      </td>
-      <td>
-        <img alt="Picture of Turtle" class="photo"
-          src="/img/turtle.jpg">
-
-      </td></tr></table>
-    <main class="container grid" id="content">
+      <h1>Find everything you want to know about <br><span class="gradient-text">Turtles</span></h1>
+      <p>From gentle sea turtles to curious box turtles—discover species, habitats, and conservation status.</p>
+      <div class="badge" aria-label="dedication">For Ms. Walker</div>
+    </header>
+    <div class="content-row">
+      <img alt="Turtle resting on a rock" class="side-image" src="/img/turtle.jpg">
+      <main class="container grid" id="content">
         <section class="card" aria-labelledby="choose-title">
             <h2 id="choose-title" class="section-title">Choose a turtle</h2>
             <p class="muted">Pick a species or group to explore.</p>
@@ -339,9 +368,9 @@
           id="selectionText">Ready when you are—pick a turtle!</span></div>
 
             
-      <hr style="border:0;border-top:1px solid #e5e9f5; margin:1rem 0; opacity:.7" aria-hidden="true" />
+            <hr class="section-divider" aria-hidden="true" />
 
-            <h3 class="section-title" style="margin-top:.5rem">Some endangered or highly threatened turtles</h3>
+            <h3 class="section-title mt-xs">Some endangered or highly threatened turtles</h3>
             <p class="muted">Many turtles face habitat loss, poaching, and climate change. Here are several that need
         our help:</p>
             <ul class="list" aria-label="Endangered turtles list">
@@ -357,28 +386,27 @@
                 <li>Hawksbill sea turtle</li>
               </ul>
           
-    </section>
+        </section>
 
         <section class="card" aria-labelledby="about-title">
-            <figure>
-                <img alt="Sea turtle swimming in the ocean" class="photo"
+          <figure>
+            <img alt="Sea turtle swimming in the ocean" class="photo"
           src="/img/Sea turtle swimming in the ocean.jpeg" />
-                <figcaption>Sea turtles are ancient mariners—some migrate thousands of miles between feeding and nesting
+            <figcaption>Sea turtles are ancient mariners—some migrate thousands of miles between feeding and nesting
           grounds.</figcaption>
-              </figure>
+          </figure>
 
-            <article style="margin-top:1rem" aria-labelledby="about-title">
-                <h2 id="about-title" class="section-title">About sea turtles</h2>
+          <article class="mt-md" aria-labelledby="about-title">
+            <h2 id="about-title" class="section-title">About sea turtles</h2>
                 <p>Sea turtles are marine reptiles in the order <em>Testudines</em> (suborder <em>Cryptodira</em>).
           There are seven recognized species: flatback, green, hawksbill, leatherback, loggerhead, Kemp's ridley and
           olive ridley. Six of the seven are considered globally threatened.</p>
                 <p>Hard-shelled species are called <strong>cheloniids</strong>; the leatherback is the only living
           member of the <strong>dermochelyid</strong> group—with a flexible, leathery shell adapted for deep,
           long-distance ocean travel.</p>
-              </article>
-           
-            <article style="margin-top:1rem" aria-labelledby="about-title"></article>
-            <h2 id="about-title" class="section-title">Distrabution and Habitat</h2>
+          </article>
+          <article class="mt-md" aria-labelledby="distribution-title">
+            <h2 id="distribution-title" class="section-title">Distribution and Habitat</h2>
             <p>Sea turtles can be found in all oceans except for the polar regions. The flatback sea turtle is found
         solely on the northern coast of Australia. The Kemp's ridley sea turtle is found solely in the Gulf of Mexico
         and along the East Coast of the United States.[30]
@@ -397,16 +425,15 @@
         In 2020, diminished human activity resulting from the COVID-19 virus caused an increase in sea turtle nesting.
         Some areas in Thailand saw an abnormally high number of nests, and Florida experienced a similar phenomenon.
         Less plastic and light pollution could explain these observations.[35]</p>
-      <footer>
-          <small>Wikipedia contributors. (n.d.). Sea turtle: Distribution and habitat. In Wikipedia. Retrieved
+            <footer>
+              <small>Wikipedia contributors. (n.d.). Sea turtle: Distribution and habitat. In Wikipedia. Retrieved
           09/30/2025, from https://en.wikipedia.org/wiki/Sea_turtle</small>
-      </footer>
-        </article>
-          
-    </section>
+            </footer>
+          </article>
+        </section>
       </main>
-        <img alt="Turtle (right)" class="side-image" src="/img/turtle.jpg" />
-      </div>
+      <img alt="Turtle basking in the sun" class="side-image" src="/img/turtle.jpg">
+    </div>
 
     <footer>
         <small>Inspired in part by public sources (e.g., Wikipedia). Always cross-check with authoritative conservation
