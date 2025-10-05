@@ -1,363 +1,1349 @@
-<html>
-    <head>
-        <title>Around the Sea</title>
-        <style>
-            canvas {
-              border: 1px solid #000;
-              display: block;
-              margin: 0 auto;
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Around the Sea</title>
+<style>
+  :root {
+  /* Legacy 16-color base set (used to derive the 256-color style palette) */
+    --black:#000000; --blue:#0000AA; --green:#00AA00; --cyan:#00AAAA;
+    --red:#AA0000; --magenta:#AA00AA; --brown:#AA5500; --lightgray:#AAAAAA;
+    --darkgray:#555555; --lightblue:#5555FF; --lightgreen:#55FF55; --lightcyan:#55FFFF;
+    --lightred:#FF5555; --lightmagenta:#FF55FF; --yellow:#FFFF55; --white:#FFFFFF;
+  }
+  html,body {height:100%; margin:0; background:var(--black); color:var(--lightgray); font-family:monospace;}
+  .wrap {position:fixed; inset:0; display:flex; align-items:center; justify-content:center;}
+  canvas {
+    /* Scales while preserving 4:3 (1024x768 internal) */
+    width: min(96vw, calc(96vh * (4/3)));
+    height: calc(width * 0.75);
+    aspect-ratio: 4 / 3;
+  image-rendering: -webkit-optimize-contrast; /* Edge / Safari */
+  image-rendering: pixelated; /* fallback */
+    background: var(--blue);
+    outline: 2px solid var(--darkgray);
+    box-shadow: 0 0 0 4px var(--black), 0 0 0 6px var(--lightgray);
+  }
+  .overlay {
+    position:fixed; left:0; right:0; bottom:10px; display:flex; justify-content:center; pointer-events:none;
+    font-size:12px; text-align:center; line-height:1.4;
+  }
+  .overlay .hint {
+    background: #000c; color: var(--lightgray);
+    padding:6px 10px; border:1px solid var(--darkgray);
+  }
+  /* Tiny CRT-ish scanline sheen (subtle) */
+  body::before {
+    content:""; position:fixed; inset:0; pointer-events:none;
+    background: repeating-linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.03) 1px, transparent 1px, transparent 3px);
+    mix-blend-mode: overlay; opacity:.3;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+  <canvas id="game" width="1024" height="768" aria-label="Around the Sea"></canvas>
+  </div>
+  <div class="overlay">
+    <div class="hint">
+      WASD/Arrows: move • Mouse: aim • Click/Space: harpoon • Enter: select/continue • 1/2/3: pick upgrade • R: reroll • P: pause
+    </div>
+  </div>
+
+<script>
+(() => {
+  // ===== Canvas setup =====
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  // ===== Constants =====
+  const W = canvas.width, H = canvas.height;
+  const TAU = Math.PI * 2;
+  // Sprite scale relative to original 320x200 design space
+  const SPR = W / 320; // ~3.2 at 1024 width
+  // Dock configuration
+  const DOCK_X = 72;      // land edge x (wider shore)
+  const DOCK_W = 96;      // dock length into water
+  const DOCK_H = 28;      // dock thickness slightly thicker
+  // Town hut (larger, sits on dock end)
+  const TOWN_HUT = { w:26, h:22 };
+  TOWN_HUT.x = DOCK_X + DOCK_W - TOWN_HUT.w - 4; // adjust inset for new dock width
+  TOWN_HUT.y = H/2 - TOWN_HUT.h/2 - 4;           // vertically centered on dock
+
+  // Legacy base color names retained for concise drawing code
+  const PAL = {
+    black:'#000000', blue:'#0000AA', green:'#00AA00', cyan:'#00AAAA',
+    red:'#AA0000', magenta:'#AA00AA', brown:'#AA5500', lightgray:'#AAAAAA',
+    darkgray:'#555555', lightblue:'#5555FF', lightgreen:'#55FF55', lightcyan:'#55FFFF',
+    lightred:'#FF5555', lightmagenta:'#FF55FF', yellow:'#FFFF55', white:'#FFFFFF'
+  };
+
+  // ===== 128 Color Base Palette + 128 Phase Palettes (Data Objects) =====
+  // We build a 128 color base palette by taking the 16 legacy base colors and
+  // generating 8 brightness levels for each (dark -> light). This yields a
+  // stable immutable BASE palette of 128 entries.
+  function hexToRgb(h){
+    const n=parseInt(h.slice(1),16); return {r:(n>>16)&255,g:(n>>8)&255,b:n&255};
+  }
+  function rgbToHex(r,g,b){
+    const to=v=>v.toString(16).padStart(2,'0');
+    return '#'+to(r)+to(g)+to(b);
+  }
+  function mix(a,b,t){ return Math.round(a+(b-a)*t); }
+  function shade(hex, t){ // t in [0,1], 0=darkened, 1=brightened
+    const {r,g,b}=hexToRgb(hex);
+    // dark anchor 25%, light anchor 100%
+    const darkF = 0.25, lightF = 1.0;
+    const f = darkF + (lightF-darkF)*t;
+    return rgbToHex(mix(0, r, f), mix(0, g, f), mix(0, b, f));
+  }
+  const BASE_SEEDS = [
+    PAL.black, PAL.blue, PAL.green, PAL.cyan,
+    PAL.red, PAL.magenta, PAL.brown, PAL.lightgray,
+    PAL.darkgray, PAL.lightblue, PAL.lightgreen, PAL.lightcyan,
+    PAL.lightred, PAL.lightmagenta, PAL.yellow, PAL.white
+  ];
+  const PALETTE_BASE_128 = [];
+  for(const seed of BASE_SEEDS){
+    for(let i=0;i<8;i++) PALETTE_BASE_128.push(shade(seed, i/7));
+  }
+  // Helper to transform a palette for a phase (tint, saturation shift, etc.)
+  function transformPalette(base, {tint='#000000', tintStrength=0, desaturate=0}){
+    const {r:tr,g:tg,b:tb}=hexToRgb(tint);
+    return base.map(c=>{
+      let {r,g,b}=hexToRgb(c);
+      // desaturate by moving toward luminance
+      if(desaturate>0){
+        const lum = 0.2126*r+0.7152*g+0.0722*b;
+        r = mix(r, lum, desaturate); g = mix(g, lum, desaturate); b = mix(b, lum, desaturate);
+      }
+      if(tintStrength>0){
+        r = mix(r,tr,tintStrength); g = mix(g,tg,tintStrength); b = mix(b,tb,tintStrength);
+      }
+      return rgbToHex(r,g,b);
+    });
+  }
+  // Phase (game state) dynamic 128 color palettes. These represent the second
+  // half of a conceptual 256-color system where first 128 are immutable.
+  const PHASE_PALETTES_128 = {
+    TITLE: transformPalette(PALETTE_BASE_128, {tint:'#202040', tintStrength:0.35, desaturate:0.15}),
+    PLAYING: transformPalette(PALETTE_BASE_128, {tint:'#001020', tintStrength:0.15, desaturate:0}),
+    SHOP: transformPalette(PALETTE_BASE_128, {tint:'#402010', tintStrength:0.30, desaturate:0.05}),
+    GAMEOVER: transformPalette(PALETTE_BASE_128, {tint:'#200000', tintStrength:0.50, desaturate:0.25}),
+    PAUSE: transformPalette(PALETTE_BASE_128, {tint:'#101010', tintStrength:0.25, desaturate:0.40})
+  };
+  // Data object exporting structured access
+  const COLOR_DATA = {
+    base: PALETTE_BASE_128, // immutable 128 colors
+    phases: PHASE_PALETTES_128, // per-phase variant 128 colors
+    getPhasePalette(phase){ return PHASE_PALETTES_128[phase] || PHASE_PALETTES_128.PLAYING; }
+  };
+  // (Rendering logic still uses PAL.* directly; future refactors can map
+  // indices from COLOR_DATA as needed.)
+
+  // Game states
+  const STATE = { TITLE:0, PLAYING:1, SHOP:2, GAMEOVER:3, PAUSE:4, TOWN:5, WIN:6 };
+
+  // Zones / biomes (affect backdrop, spawns)
+  const ZONES = ['Shore', 'Coast', 'Open Sea', 'Abyss', 'Mythic Waters'];
+
+  // Input
+  const keys = Object.create(null);
+  let mouse = {x:W/2,y:H/2, down:false};
+
+  // Timing
+  let lastTime = performance.now();
+  let accum = 0;
+  const FIXED_DT = 1/60;
+
+  // RNG helpers
+  const R = {
+    range:(a,b)=>a+Math.random()*(b-a),
+    irange:(a,b)=>Math.floor(a+Math.random()*(b-a+1)),
+    pick:(arr)=>arr[Math.floor(Math.random()*arr.length)],
+    chance:(p)=>Math.random()<p
+  };
+
+  // Math helpers
+  const clamp = (v,a,b)=>v<a?a:v>b?b:v;
+  const dist2 = (x1,y1,x2,y2)=>{const dx=x2-x1,dy=y2-y1; return dx*dx+dy*dy};
+  const angTo = (x1,y1,x2,y2)=>Math.atan2(y2-y1, x2-x1);
+  const fromAng = (a, s)=>({x:Math.cos(a)*s, y:Math.sin(a)*s});
+
+  // Entities
+  const bullets = [];
+  const enemies = [];
+  const particles = [];
+  const drops = [];
+
+  // Wave & progression
+  const wave = { num:1, toSpawn:0, spawnTimer:0, active:true, zoneIndex:0, boss:false, cleared:false };
+
+  // Player
+  const player = {
+    x: 48, y: H/2, r: 3*SPR,
+    vx:0, vy:0,
+    speed: 46,    // on foot
+    hp: 3, maxHp: 3,
+    damage: 1,
+    crit: 0.00,
+    shotCount: 1,
+    fireDelay: 0.32,
+    fireCd: 0,
+    bulletSpeed: 160,
+    invuln: 0,
+    coins: 0, // "scales"
+    shipLevel: 0, // 0=foot, 1=rowboat, 2=motorboat, 3=trawler
+    aimAssist: false,
+    baitSmallBonus: 0,
+    bigFishBias: 0,
+    mythicChance: 0,
+    alive: true
+  };
+
+  // Meta (simple best wave saved)
+  const store = {
+    get best(){ return +(localStorage.getItem('fol_bestWave')||0) },
+    set best(v){ localStorage.setItem('fol_bestWave', String(v)) }
+  };
+
+  // Game state
+  let state = STATE.TITLE;
+  let titleBlink = 0;
+  let shopChoices = [];
+  let rerollCost = 5;
+  // Hard mode + win target & obstacles
+  const gameMode = { hard:false };
+  const LEVEL_TARGET = 12; // waves to beat for Hard mode victory
+  const rocks = [];
+  let deathCause = '';
+
+  function genRocks(){
+    rocks.length=0;
+    // number scales with wave
+    const count = 4 + Math.min(10, Math.floor(wave.num/2));
+    for(let i=0;i<count;i++){
+      const rx = R.range(120, W-60);
+      const ry = R.range(60, H-60);
+      rocks.push({x:rx,y:ry,r:(10+R.range(-3,6))*SPR});
+    }
+  }
+
+  // ===== Upgrades =====
+  const UPGRADES = [
+    // Skills
+    {id:'skill_focus', name:"Angler's Focus", cat:'Skill', desc:'+10% fire rate & +10% harpoon speed.', maxStacks:5,
+      apply:p=>{ p.fireDelay*=0.9; p.bulletSpeed*=1.1; } },
+    {id:'skill_legs', name:'Sea Legs', cat:'Skill', desc:'+12% move speed.', maxStacks:5,
+      apply:p=>{ p.speed*=1.12; } },
+    {id:'skill_will', name:'Iron Will', cat:'Skill', desc:'+1 max HP & heal 1.', maxStacks:4,
+      apply:p=>{ p.maxHp+=1; p.hp=Math.min(p.hp+1,p.maxHp); } },
+    {id:'skill_precision', name:'Precision', cat:'Skill', desc:'+15% crit chance (2x damage).', maxStacks:4,
+      apply:p=>{ p.crit+=0.15; } },
+    // Equipment
+    {id:'equip_harpoon', name:'Reinforced Harpoon', cat:'Equipment', desc:'+1 damage.', maxStacks:6,
+      apply:p=>{ p.damage+=1; } },
+    {id:'equip_reel', name:'Reel Motor', cat:'Equipment', desc:'-18% shooting cooldown.', maxStacks:4,
+      apply:p=>{ p.fireDelay*=0.82; } },
+    {id:'equip_net', name:'Net Spread', cat:'Equipment', desc:'+1 additional harpoon (spread).', maxStacks:4,
+      apply:p=>{ p.shotCount=Math.min(5,(p.shotCount||1)+1); } },
+    {id:'equip_sonar', name:'Ping Sonar', cat:'Equipment', desc:'Aimed shots slightly auto-correct.', maxStacks:1,
+      apply:p=>{ p.aimAssist=true; } },
+    // Bait
+    {id:'bait_worms', name:'Fat Worms', cat:'Bait', desc:'+20% scales from small fish.', maxStacks:3,
+      apply:p=>{ p.baitSmallBonus+=0.20; } },
+    {id:'bait_squid', name:'Squid Bait', cat:'Bait', desc:'More big fish spawn; bigger rewards.', maxStacks:3,
+      apply:p=>{ p.bigFishBias+=0.20; } },
+    {id:'bait_mythic', name:'Mythic Lure', cat:'Bait', reqWave:5, desc:'Chance for mythic hunts earlier.', maxStacks:2,
+      apply:p=>{ p.mythicChance+=0.15; } },
+    // Ships
+    {id:'ship_row', name:'Rowboat', cat:'Ship', reqShip:0, desc:'Get a boat! +20% speed, +1 hull.', maxStacks:1,
+      apply:p=>{ if(p.shipLevel<1){ p.shipLevel=1; p.speed*=1.2; p.maxHp+=1; p.hp+=1; } } },
+    {id:'ship_motor', name:'Motorboat', cat:'Ship', reqShip:1, desc:'+15% speed, +1 hull, reach the Coast.', maxStacks:1,
+      apply:p=>{ if(p.shipLevel<2){ p.shipLevel=2; p.speed*=1.15; p.maxHp+=1; p.hp+=1; wave.zoneIndex=Math.max(wave.zoneIndex,1); } } },
+    {id:'ship_trawler', name:'Trawler', cat:'Ship', reqShip:2, desc:'+10% speed, +2 hull, hunt offshore.', maxStacks:1,
+      apply:p=>{ if(p.shipLevel<3){ p.shipLevel=3; p.speed*=1.10; p.maxHp+=2; p.hp+=2; wave.zoneIndex=Math.max(wave.zoneIndex,2); } } },
+  ];
+
+  // Track how many times each upgrade has been taken this run
+  const upgradeCounts = {};
+  let runStarted = false; // track if a run is in progress (retain upgrades when visiting town)
+  const getUpgradeCount = id => upgradeCounts[id]||0;
+
+  function rollShopChoices() {
+    const pool = UPGRADES.filter(u=>{
+      if(u.reqWave && wave.num < u.reqWave) return false;
+      if(u.reqShip!=null && player.shipLevel!==u.reqShip) return false;
+      // Limit duplicate stacking for some (allow stacking for a few)
+      if(u.id==='equip_net' && player.shotCount>=5) return false;
+  if(u.maxStacks!=null && getUpgradeCount(u.id) >= u.maxStacks) return false;
+      return true;
+    });
+    const choices = [];
+    while (choices.length<3 && pool.length) {
+      const idx = R.irange(0, pool.length-1);
+      choices.push(pool.splice(idx,1)[0]);
+    }
+    return choices;
+  }
+
+  // ===== Input handling =====
+  addEventListener('keydown', e=>{
+    keys[e.key.toLowerCase()] = true;
+    if(state===STATE.TITLE && (e.key==='Enter' || e.key===' ')) startGame();
+    if(state===STATE.TITLE && e.key.toLowerCase()==='h') gameMode.hard = !gameMode.hard;
+    if(state===STATE.TITLE && e.key.toLowerCase()==='t') state = STATE.TOWN;
+    if(state===STATE.GAMEOVER && (e.key==='Enter' || e.key===' ')) startGame();
+    if(state===STATE.PAUSE && e.key.toLowerCase()==='p') state = STATE.PLAYING;
+    else if(state===STATE.PLAYING && e.key.toLowerCase()==='p') state = STATE.PAUSE;
+    if(state===STATE.PLAYING && e.key.toLowerCase()==='q') state = STATE.TOWN; // quick to town
+    if(state===STATE.TOWN && ((e.key && e.key.toLowerCase()==='enter') || e.key===' ')) {
+      if(!runStarted) startGame();
+      else { state = STATE.PLAYING; enforceDockSpawn(); }
+    }
+    if(state===STATE.TOWN && e.key.toLowerCase()==='escape') state = STATE.TITLE;
+    if(state===STATE.WIN && (e.key==='Enter' || e.key===' ')) startGame();
+    if(state===STATE.SHOP){
+      if(e.key==='1'||e.key==='2'||e.key==='3'){
+        const idx = +e.key-1;
+        if(shopChoices[idx]) takeUpgrade(shopChoices[idx]);
+      }
+      if(e.key.toLowerCase()==='r') {
+        if(player.coins>=rerollCost) {
+          player.coins-=rerollCost; shopChoices = rollShopChoices();
+        }
+      }
+  if(e.key==='Enter') { state = STATE.PLAYING; nextWave(); enforceDockSpawn(); }
+      // Disabled other transitions while shopping (no Town warp)
+    }
+  });
+  addEventListener('keyup', e=>{ keys[e.key.toLowerCase()] = false; });
+  canvas.addEventListener('mousemove', e=>{
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - rect.left) * (canvas.width / rect.width);
+    mouse.y = (e.clientY - rect.top) * (canvas.height / rect.height);
+  });
+  addEventListener('mousedown', ()=>{ mouse.down=true; });
+  addEventListener('mouseup', ()=>{ mouse.down=false; });
+  canvas.addEventListener('click', ()=>{
+    if(state===STATE.TITLE && mouse.x < 140) state = STATE.TOWN; // click land to open town
+    else if(state===STATE.PLAYING && wave.zoneIndex<=1){
+      if(mouse.x>=TOWN_HUT.x && mouse.x<=TOWN_HUT.x+TOWN_HUT.w && mouse.y>=TOWN_HUT.y && mouse.y<=TOWN_HUT.y+TOWN_HUT.h){
+        state = STATE.TOWN;
+      }
+    }
+    else if(state===STATE.SHOP){
+      // Mirror layout from drawShop for hit detection
+      if(shopChoices.length===0) shopChoices = rollShopChoices();
+      const gap=40; const cw=200, ch=160; const totalW = cw*3 + gap*2; const startX = (W-totalW)/2; const y=80;
+      for(let i=0;i<3;i++){
+        const x = startX + i*(cw+gap);
+        if(mouse.x>=x && mouse.x<=x+cw && mouse.y>=y && mouse.y<=y+ch){
+          const upg = shopChoices[i];
+          if(upg) takeUpgrade(upg);
+          break;
+        }
+      }
+    }
+  });
+
+  // ===== Game flow =====
+  function startGame() {
+    // Reset core
+    bullets.length=0; enemies.length=0; particles.length=0; drops.length=0;
+  // Spawn player further left on dock (near shore side)
+  const baseR = 3*SPR; // player radius set below
+  let SPAWN_X = DOCK_X + baseR + 14; // fixed offset from land edge
+  const dockMax = DOCK_X + DOCK_W - baseR;
+  if(SPAWN_X > dockMax) SPAWN_X = dockMax - 4;
+  const SPAWN_Y = H/2; // centered vertically on dock
+    Object.assign(player,{
+  x: SPAWN_X, y: SPAWN_Y, vx:0, vy:0, speed: 46, hp:3, maxHp:3, damage:1, crit:0, shotCount:1,
+  fireDelay:0.32, fireCd:0, bulletSpeed:160, invuln:0, coins:0, shipLevel:1,
+      aimAssist:false, baitSmallBonus:0, bigFishBias:0, mythicChance:0, alive:true,
+      r: 3*SPR
+    });
+  // Reset upgrade counts
+  for(const k in upgradeCounts) delete upgradeCounts[k];
+    Object.assign(wave,{ num:1, toSpawn:0, spawnTimer:0, active:true, boss:false, cleared:false, zoneIndex:0 });
+    state = STATE.PLAYING;
+    setupWave();
+  enforceDockSpawn();
+  runStarted = true;
+  }
+
+  function setupWave() {
+    wave.cleared = false;
+    wave.boss = (wave.num%5===0);
+    // Amount scales with wave
+    if(!wave.boss) {
+      wave.toSpawn = 6 + Math.floor(wave.num*1.8);
+      wave.spawnTimer = 1.0;
+    } else {
+      wave.toSpawn = 0; // boss is spawned immediately
+      spawnBoss();
+    }
+  genRocks();
+  }
+
+  function nextWave() {
+    wave.num++;
+  if(gameMode.hard && wave.num>LEVEL_TARGET){ state = STATE.WIN; return; }
+    // Unlock deeper zones as waves climb (if boat can handle it)
+    if(wave.num>=4) wave.zoneIndex = Math.max(wave.zoneIndex,1); // Coast
+    if(wave.num>=7) wave.zoneIndex = Math.max(wave.zoneIndex,2); // Open Sea
+    if(wave.num>=10) wave.zoneIndex = Math.max(wave.zoneIndex,3); // Abyss
+    if(wave.num>=12) wave.zoneIndex = Math.max(wave.zoneIndex,4); // Mythic Waters
+    setupWave();
+  enforceDockSpawn();
+  }
+
+  function endRun() {
+    state = STATE.GAMEOVER;
+    store.best = Math.max(store.best, wave.num);
+  runStarted = false;
+  }
+
+  function openShop() {
+    shopChoices = rollShopChoices();
+    state = STATE.SHOP;
+  }
+
+  function takeUpgrade(upg) {
+    upg.apply(player);
+  upgradeCounts[upg.id] = (upgradeCounts[upg.id]||0)+1;
+    // Remove ship gating: if you take Motorboat/Trawler, push zones up
+    shopChoices = []; // prevent second tap
+  }
+
+  function enforceDockSpawn(){
+    const baseR = player.r || 3*SPR;
+    // Match spawn logic: near land edge, fixed offset
+    let x = DOCK_X + baseR + 14;
+    const dockMax = DOCK_X + DOCK_W - baseR;
+    if(x > dockMax) x = dockMax - 4;
+    player.x = x;
+    player.y = H/2;
+  }
+
+  // ===== Entities =====
+  function spawnBullet(x,y, vx,vy, r, dmg, friendly, color, life=3.5) {
+    bullets.push({x,y,vx,vy,r, dmg, friendly, color, life});
+  }
+
+  function spawnParticles(x,y, n, color) {
+    for(let i=0;i<n;i++){
+      const a = Math.random()*TAU;
+      const s = R.range(20, 60);
+      particles.push({x,y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, life:R.range(0.2,0.7), color});
+    }
+  }
+
+  function dropCoins(x,y, amount) {
+    // spawn a few glints that home slightly
+    let left = amount;
+    while(left>0){
+      const take = Math.min(left, R.irange(1,3));
+      left -= take;
+      const a = Math.random()*TAU, s=R.range(10, 35);
+      drops.push({x,y, vx:Math.cos(a)*s, vy:Math.sin(a)*s, r:1.5, amount:take});
+    }
+  }
+
+  // ===== Enemies =====
+  function spawnEnemy(kind) {
+    const margin = 8;
+    let x,y;
+    // Spawn outside player immediate area
+    const side = R.pick(['top','bottom','left','right']);
+    if(side==='top'){x=R.range(margin,W-margin); y=margin;}
+    if(side==='bottom'){x=R.range(margin,W-margin); y=H-margin;}
+    if(side==='left'){x=margin; y=R.range(margin,H-margin);}
+    if(side==='right'){x=W-margin; y=R.range(margin,H-margin);}
+
+    if(kind==='minnow'){
+      enemies.push({
+  type:'minnow', x,y, r:3*SPR, hp:1, speed:R.range(20,40),
+        value: 1 + (player.baitSmallBonus>0?1:0),
+        t:0, shoot:0,
+        update(e,dt){
+          e.t+=dt;
+          const ang = angTo(e.x,e.y, player.x, player.y)+Math.sin(e.t*3)*0.6;
+          e.x += Math.cos(ang)*e.speed*dt;
+          e.y += Math.sin(ang)*e.speed*dt;
+          e.shoot-=dt;
+          if(e.shoot<=0 && wave.num>=3 && R.chance(0.02)){
+            e.shoot = 1.3;
+            const a = angTo(e.x,e.y, player.x, player.y);
+            const v = fromAng(a, 70+10*wave.num/2);
+            spawnBullet(e.x,e.y,v.x,v.y, 2, 1, false, PAL.lightcyan, 3.2);
+          }
+        },
+        draw(e){
+          // tiny fish triangle
+          tri(e.x,e.y, angleToPlayer(e), PAL.lightcyan, 5*SPR);
+        }
+      });
+    }
+    if(kind==='puffer'){
+      enemies.push({
+  type:'puffer', x,y, r:5*SPR, hp:3+Math.floor(wave.num/3), speed:20,
+        value: 3,
+        t:0, shoot:1.2,
+        update(e,dt){
+          e.t+=dt;
+          // maintain some distance; drift
+          const a = angTo(e.x,e.y, player.x, player.y);
+          const dst2 = dist2(e.x,e.y, player.x, player.y);
+          const desired = 70*70;
+          if(dst2<desired) { e.x -= Math.cos(a)*e.speed*dt; e.y -= Math.sin(a)*e.speed*dt; }
+          else { e.x += Math.cos(a)*e.speed*0.3*dt; e.y += Math.sin(a)*e.speed*0.3*dt; }
+          e.shoot -= dt;
+          if(e.shoot<=0){
+            e.shoot = 1.8 - Math.min(1.2, wave.num*0.03);
+            // radial burst
+            const n = 6 + Math.min(10, Math.floor(wave.num/2));
+            for(let i=0;i<n;i++){
+              const ang = (i/n)*TAU + e.t*0.3;
+              const spd = 70 + wave.num*3;
+              spawnBullet(e.x,e.y, Math.cos(ang)*spd, Math.sin(ang)*spd, 2, 1, false, PAL.lightmagenta, 3.5);
             }
-          </style>
-          <script>
+          }
+        },
+        draw(e){
+          circle(e.x,e.y, e.r, PAL.magenta);
+          ctx.fillStyle = PAL.yellow;
+          ctx.fillRect(e.x-1, e.y-1, 1,1);
+        }
+      });
+    }
+    if(kind==='cuda'){
+      enemies.push({
+  type:'cuda', x,y, r:4*SPR, hp:2+Math.floor(wave.num/3), speed:70,
+        value: 3,
+        t:0, shoot:0, dash:1.2,
+        update(e,dt){
+          e.t+=dt; e.dash-=dt; e.shoot-=dt;
+          const a = angTo(e.x,e.y, player.x, player.y);
+          // dash then coast
+          const spd = e.dash>0? e.speed*1.4 : e.speed*0.6;
+          e.x += Math.cos(a)*spd*dt;
+          e.y += Math.sin(a)*spd*dt;
+          if(e.dash<=0) e.dash=1.8+Math.random()*0.8;
 
-        </script>
-    </head>
-    <body>
-        <h1>Around the Sea</h1>
-      
-        <h2>Story</h2>
-
-
-        <p>You are a fisherman who has been tasked with catching a legendary fish and sea monsters!</p>
-        <p>You must travel around the sea to find and catch these rare creatures.</p>
-        
-
-        <h2>Controls</h2>
-
-        <h2>Gameplay</h2>
-
-        <p>You start on a boat and your point of view is above your ship.  Sea monsters will appear and you do your best to avoid them.  Your boat will crash 
-        when you hit a sea monster and you will go back to the main menu.  You can also get sent back to the main menu if you hit rocks. </p>
-
-        <p>To win the game you must beat the game on hard mode by completing all the levels.</p>
-
-        <h2>Characters</h2>
-
-        <p><stong>Main Charcter:</strong> You are the main character a crusty old sea dog who has spent their life at sea fishing and traveling around all the oceans of the world.  Now that your career is over, you just want to get home and spend some time with your cat Barnacle.</p>
-
-        <p><stong>Barnacle:</strong>  Barnacle is a medium-sized cat with a distinctive coat pattern. She has sleek, black fur with white spots that resemble barnacles on a ship's hull. She is a mixed breed cat, with perhaps some Siamese and Domestic Shorthair ancestry, which contributes to her lean build and sharp features.
-
-        <p>Despite her age, Barnacle is still very active and enjoys spending time outdoors, especially near the water. Her favorite activity is chasing after seagulls and other birds that come near the shore. She also likes to play with cat toys and climb on anything that she can find, such as ropes and anchor chains.</p>
-            
-        <p>When it comes to food, Barnacle is not particularly picky. She enjoys eating fresh fish and seafood, which you often share with her during your journeys. She also likes to snack on cat treats and milk.</p>
-            
-        <p>What makes Barnacle different from all the other cats in the world is her unwavering loyalty to you, her owner. She follows you around wherever you go, whether it's on deck or below deck, and never strays too far away from your side. Her love and devotion to you is what truly sets her apart and makes her a cherished companion on all your adventures at sea.</p>
-
-        <p><stong>Taylor Smith:</strong> Taylor Smith is a retired sailor who used to work on cargo ships and travel the world. After years at sea, Taylor settled down in a small coastal town near the dock where you now live. Taylor enjoys spending time outdoors, especially near the water, and has become a fixture in the community.</p>
-
-        <p>You first met Taylor when you moved into your home on the dock. Taylor was already living next door and offered to help you with the move-in process. You quickly became friends and bonded over your shared love of the sea and your experiences as sailors. Over the years, you and Taylor have exchanged stories and advice, and even helped each other with repairs on your boats and docks.</p>
-        
-        <p>One day, Taylor introduced you to their beloved dog, Skipper, who quickly became friends with your cat, Barnacle. You and Taylor often sit on the dock and chat while your pets play together, and you have come to appreciate Taylor's company and friendship.</p>
-
-        <p><strong>Skipper:</strong> Skipper is a friendly and playful golden retriever who likes to play fetch with his tennis ball. He often tries to play with Barnacle, who is not always interested in his playful antics. Nonetheless, Barnacle enjoys watching Skipper play and occasionally bats at the tennis ball when it comes near her.</p>
-
-        <h2>Enemies</h2>
-
-        <p><strong>Nessie:</strong> Nessie is a large, aquatic creature that lives in the Loch Ness in Scotland. It is often described as being similar to a plesiosaur or other prehistoric marine reptile. The creature has been sighted numerous times over the years, but its existence remains unproven.  She will show up and watch you sail your boat through the first sea.  She is more interested in eating fish then in disrupting your main character.</p>
-        
-        <p><strong>Giant Turtle:</strong> Giant turtles are large, aquatic creatures that live in the ocean. They are often depicted as being slow-moving and docile, but some stories portray them as being aggressive towards humans. Giant turtles can grow up to 10 feet long and weigh over 1,000 pounds. They have a distinctive shell pattern that resembles a turtle's shell.  They will show up and try to bite your boat.  If they bite your boat you will lose a life.  They will also try to bite you if you are in the water. If you are in the water and they bite you, you will lose two lives.</p>
-
-        <p><strong>Sea serpents:</strong> Sea serpents are large, snake-like creatures that live in the ocean. They are often depicted as having multiple heads and long, scaly bodies. Sea serpents are usually portrayed as being hostile towards humans, but some stories portray them as being friendly towards sailors.  They will show up and try to bite your boat.  If they bite your boat you will lose a life.  They will also try to bite you if you are in the water.   If you are in the water and they bite you, you will lose two lives.</p>
-
-
-        <p><strong>Sea Snake:</strong> Sea snakes are a type of venomous snake that live in the ocean. They are often found near coral reefs and other underwater structures. Sea snakes can grow up to 10 feet long and have a distinctive black and yellow pattern on their bodies. They are highly venomous, but rarely attack humans unless provoked.  They will show up and try to bite your boat.  If they bite your boat you will lose a life.  They will also try to bite you if you are in the water.  If you are in the water and they bite you, you will lose one life and be poisoned.</p>
-        
-        <p><strong>Sea Monsters:</strong> Sea monsters are large creatures that live in the ocean. They are often depicted as giant squid or octopus-like creatures with multiple tentacles and large eyes. They are usually portrayed as being hostile towards humans, but some stories portray them as being friendly towards sailors.  hey will show up and try to bite your boat.  If they bite your boat you will die.  </p>
-
-        <p><strong>Kraken (Norse mythology):</strong> The Kraken is a legendary sea monster that lives in the ocean. It is often depicted as a giant squid or octopus-like creature with multiple tentacles and large eyes. The Kraken is usually portrayed as being hostile towards humans, but some stories portray it as being friendly towards sailors.  It will show up and try to bite your boat.  If it bites your boat you will die.  </p>
-        </p>
-
-        <p><strong>1.	Kraken	Norse mythology</strong>	The Kraken is a giant sea monster said to dwell off the coasts of Norway and Greenland. It is typically described as having a massive body and many long tentacles, with the ability to sink ships and create whirlpools.	The origin of the Kraken myth is unclear, but it is believed to have originated from sightings of real-life giant squids or octopuses, which can grow to enormous sizes and were known to attack ships.	In Norse mythology, the Kraken could only be defeated by the god Thor or the sea goddess Ran. In modern times, it is said that the Kraken can be defeated by attacking its weak spots, such as its eyes or mouth, with powerful weapons or explosives.	The Kraken myth has been passed down through oral traditions and written accounts, including the works of the 13th-century Icelandic poet, Snorri Sturluson. It has also been popularized in modern literature and media, including the Pirates of the Caribbean film franchise.
-
-
-        </p><p><strong>2.	Leviathan	Jewish mythology</strong>	Leviathan is a sea monster that is often described as a giant serpent or dragon. It is said to dwell in the depths of the ocean and is associated with chaos and destruction. In some traditions, Leviathan is seen as a symbol of evil, while in others, it represents the power of nature.	The origins of the Leviathan myth are unclear, but it is believed to have originated from ancient Near Eastern myths about chaos monsters. The concept of Leviathan was later incorporated into Jewish mythology, where it became a powerful symbol of God's power over the forces of chaos.	In Jewish mythology, Leviathan is seen as an almost indestructible creature that can only be defeated by God. In some legends, it is said that the righteous will feast on the flesh of Leviathan after it is defeated in the end times.	The story of Leviathan appears in a number of Jewish texts, including the Tanakh (the Hebrew Bible) and the Talmud. It has also been referenced in other works of literature and popular media, including Herman Melville's Moby-Dick and the Dungeons & Dragons role-playing game.
-
-        </p><p><strong>3.	Cetus	Greek mythology</strong>	Cetus is a sea monster from Greek mythology that is often depicted as a giant sea serpent or fish. It is associated with storms, shipwrecks, and other disasters at sea. In some legends, Cetus is portrayed as a punisher sent by the gods to punish humans for their misdeeds.	The origin of the Cetus myth is unclear, but it is believed to have originated from ancient Greek tales of sea monsters and monsters sent by the gods to punish humans.	In Greek mythology, Cetus is often defeated by heroes or gods, who use a combination of weapons and strategy to outsmart the creature. In some legends, the hero Perseus defeats Cetus by showing it the head of the Gorgon Medusa, which turns it to stone.	The story of Cetus appears in a number of ancient Greek texts, including the Iliad and the Odyssey by Homer. It has also been referenced in other works of literature and popular media, including the Clash of the Titans film franchise.
-
-        </p><p><strong>4.	Charybdis	Greek mythology</strong>	Charybdis is a sea monster from Greek mythology that is often depicted as a giant whirlpool. It is said to dwell in a narrow strait between Italy and Sicily and is associated with the destruction of ships and sailors. In some legends, Charybdis is portrayed as a punishment sent by the gods to punish humans for their arrogance.	The origins of the Charybdis myth are unclear, but it is believed to have originated from ancient Greek tales of sea monsters and natural disasters.	In Greek mythology, Charybdis is often defeated by heroes or gods, who use a combination of weapons and strategy to outsmart the creature. In some legends, the hero Odysseus is able to avoid Charybdis by sailing close to the edge of the strait and sacrificing a portion of his crew to the monster Scylla, who dwells on the opposite side of the strait.	The story of Charybdis appears in a number of ancient Greek texts, including the Odyssey by Homer. It has also been referenced in other works of literature and popular media, including Jules Verne's novel Twenty Thousand Leagues Under the Sea and the Pirates of the Caribbean film franchise.
-
-
-        </p><p><strong>5.	Scylla	Greek mythology</strong>	Scylla is a sea monster from Greek mythology that is often depicted as a creature with six heads and twelve legs. It is said to dwell in a narrow strait between Italy and Sicily and is associated with the destruction of ships and sailors. In some legends, Scylla is portrayed as a beautiful nymph who was transformed into a monster by the jealous sea goddess Circe.	The origins of the Scylla myth are unclear, but it is believed to have originated from ancient Greek tales of sea monsters and natural disasters.	In Greek mythology, Scylla is often defeated by heroes or gods, who use a combination of weapons and strategy to outsmart the creature. In some legends, the hero Odysseus is able to avoid Scylla by sailing close to the edge of the strait and sacrificing a portion of his crew to the monster Charybdis, who dwells on the opposite side of the strait.	The story of Scylla appears in a number of ancient Greek texts, including the Odyssey by Homer. It has also been referenced in other works of literature and popular media, including the Pirates of the Caribbean film franchise.
-
-        </p><p><strong>6.	Jörmungandr	Norse mythology</strong>	Jörmungandr, also known as the Midgard Serpent, is a sea monster from Norse mythology. It is said to be a giant serpent that encircles the world, holding its own tail in its mouth. The creature is associated with natural disasters, such as earthquakes and tidal waves, and is believed to be one of the children of the god Loki. According to legend, Jörmungandr will release its tail and rise from the sea during the events of Ragnarok, the end of the world.	The origin of the Jörmungandr myth is unclear, but it is believed to have originated from ancient Norse tales of sea monsters and the dangers of the sea.	In Norse mythology, Jörmungandr is destined to fight against the god Thor during the events of Ragnarok. According to legend, Thor will slay Jörmungandr with his hammer, Mjolnir, but the serpent's poisonous breath will kill Thor in turn.	The story of Jörmungandr appears in a number of ancient Norse texts, including the Poetic Edda and the Prose Edda. It has also been referenced in modern media, including the Marvel Comics universe.
-
-
-        </p><p><strong>7.	Tiamat	Babylonian mythology</strong>	Tiamat is a primordial goddess and sea monster from Babylonian mythology. She is depicted as a dragon or serpent, often with multiple heads, and is associated with chaos and the primordial waters of creation. According to legend, Tiamat created the world with her consort, Apsu, but later became enraged when their children, the younger gods, became too noisy. She planned to destroy them, but the younger gods fought back and eventually killed her, splitting her body into two parts to create the heavens and the earth.	The origins of the Tiamat myth are unclear, but it is believed to have originated in ancient Mesopotamian creation stories.	Tiamat is defeated by the god Marduk in a battle described in the Babylonian epic poem Enuma Elish. Marduk is said to have defeated Tiamat by using powerful winds to prevent her from breathing fire, then using arrows to pierce her belly and slay her. He then split her body into two parts to create the heavens and the earth.	The story of Tiamat is described in the Babylonian epic poem Enuma Elish, which was written in the 12th century BCE. It has also been referenced in modern media, including video games such as "Final Fantasy" and "Dungeons & Dragons."
-
-        </p><p><strong>8.	Qalupalik	Inuit mythology</strong>	The Qalupalik is a sea monster from Inuit mythology that is said to live in the icy waters of the Arctic. It is described as a humanoid creature with long hair and green skin, and is said to wear a distinctive amautik, a traditional Inuit parka with a large pouch in the back. The Qalupalik is said to kidnap children who venture too close to the water's edge, taking them back to its underwater lair to keep as its own.	The Qalupalik is believed to have originated in Inuit oral traditions, where it was used as a cautionary tale to warn children about the dangers of playing too close to the water.	The Qalupalik can be defeated by using traditional Inuit tools such as the qajaq (kayak) or harpoon. It is also said that reciting certain traditional songs or spells can ward off the Qalupalik and prevent it from kidnapping children.	The Qalupalik is primarily known through Inuit oral traditions, but has also been referenced in contemporary literature and art. In 2009, a children's book titled "The Qalupalik" was published by Inhabit Media, retelling the story of the monster for a new generation.
-
-        </p><p><strong>9	Awa'uq	Aleut mythology</strong>	Awa'uq, also known as the "Killer Whale People", are monstrous orca whales in Aleut mythology. They are said to be capable of shape-shifting into human form and luring humans into the water, where they would drown and devour them. According to legends, they are the spirits of deceased fishermen who died at sea, seeking revenge on the living.	In Aleut mythology, Awa'uq are believed to have originated from the spirits of drowned fishermen who were transformed into killer whales. They were thought to have the power to control the sea and to cause storms.	Awa'uq were feared and respected by the Aleut people, who believed that the only way to avoid their wrath was to offer them sacrifices and to treat the sea with respect. There is no known way to defeat them in battle, as they were believed to be invincible.	The legend of Awa'uq has been passed down orally through generations of the Aleut people and is still told today as a cautionary tale about the dangers of the sea.
-
-        </p><p><strong>10	Umibōzu	Japanese mythology</strong>	Umibōzu is a sea monster from Japanese mythology that resembles a giant humanoid figure with a bald head and a body made of water. It is said to appear during thunderstorms or rough seas and capsize boats, drowning sailors and fishermen. According to legend, the creature emerges from the ocean depths and demands a barrel from passing ships, which must be filled with water and offered to appease the monster. If the sailors fail to comply, the Umibōzu will sink the ship.	The origin of Umibōzu is uncertain, but it is believed to be based on Japanese folklore and superstitions surrounding the dangers of the sea.	There is no specific method to defeat Umibōzu in Japanese mythology. However, it is said that offering a barrel filled with water to the creature can appease it and prevent it from causing harm.	Umibōzu appears in various works of Japanese literature and art, including the famous Edo period comic book series "Sazae-san" and the video game "Final Fantasy V". The legend of the Umibōzu has also been passed down through oral tradition and regional folklore in Japan.
-
-        </p><p><strong>11	Makara	Hindu mythology</strong>	Makara is a sea monster from Hindu mythology that is typically depicted as a hybrid creature with the body of a fish and the head of an animal, such as a crocodile or elephant. In some stories, it is said to have the tail of a peacock and the feet of a lion. Makara is often depicted as a powerful and fearsome creature that guards the gates to the ocean, and is associated with both creation and destruction. It is also sometimes associated with the god Ganga, the personification of the Ganges River.	The origins of Makara are somewhat unclear, but it is believed to have originated in the Vedic period of ancient India, around 1500-500 BCE. It is associated with the god Varuna, who was the god of the sky and the sea, and is also sometimes linked with the goddess Kali.	There is no one surefire way to defeat Makara, as it is depicted differently in different stories. However, in some myths, it is said to be vulnerable to the sound of the conch shell, which can drive it away or even kill it. In other stories, it is defeated by heroes who are able to outsmart it or overcome its strength through sheer force of will.	The primary sources for the stories of Makara are the ancient Hindu texts known as the Vedas and the Puranas, as well as various folk tales and regional legends from across India.
-
-        </p><p><strong>12	Mami Wata</strong>	Various African mythologies	Mami Wata is a water spirit revered across many African cultures. She is often depicted as a mermaid or half-human, half-fish creature, and is associated with beauty, wealth, and fertility. She is said to be a shape-shifter who can appear to humans in many different forms.	The origins of Mami Wata are unclear, as she is revered across many cultures and her mythology has evolved over time. Some believe that she has roots in ancient African water goddesses, while others see her as a syncretic figure influenced by Christian and Islamic beliefs.	Mami Wata is a powerful spirit who cannot be defeated through force. Instead, she must be appeased and respected in order to avoid her wrath. Offerings of food, drink, and other gifts are often made to her in order to gain her favor.	Various African mythological traditions
-
-        </p><p><strong>13	Amanzi Empunguto</strong>	Zulu mythology	Amanzi Empunguto is a river spirit in Zulu mythology. She is said to be a beautiful woman who lures men to their deaths with her song. Those who fall under her spell are said to be dragged beneath the water, never to be seen again.	The origins of Amanzi Empunguto are unclear, but she is likely based on earlier African water spirits or mermaid-like creatures.	There is no known way to defeat Amanzi Empunguto. Those who wish to avoid her must be cautious around bodies of water and resist the temptation to follow her song.	Zulu mythology
-
-        </p><p><strong>14	Mokele-mbembe</strong>	Various African mythologies	Mokele-mbembe is a legendary creature said to inhabit the Congo River Basin. Descriptions of the creature vary, but it is often described as a large, dinosaur-like creature with a long neck and a small head. Some believe that Mokele-mbembe is a surviving species of dinosaur, while others see it as a purely mythological creature.	The origins of Mokele-mbembe are unclear, but the creature has been reported in various forms by indigenous people in the Congo River Basin for centuries. It has also been the subject of numerous expeditions and investigations by Western researchers.	There is no known way to defeat Mokele-mbembe, as its existence has not been conclusively proven. It is considered a rare and elusive creature, and those who seek to find it often face treacherous conditions in the Congo River Basin.	Various African mythological traditions
-        
-        </p><p><strong>15	Rusalka	Russian mythology</strong>	Rusalka is a female water spirit who is known for her beauty, singing voice, and often malevolent nature. She is believed to be the ghost of a woman who drowned in a body of water, or a young woman who died before her time. Rusalki are said to dwell in rivers, lakes, and ponds, and are known to lure unsuspecting men into the water to their deaths. They are also associated with fertility, and it is said that women who bathe in a river during Rusalka Week, a holiday in early summer, will have good luck and be blessed with healthy children.	The origin of Rusalka is traced back to Slavic mythology, where they were believed to be the spirits of drowned maidens.	There is no known method to defeat a Rusalka. In some folktales, they can be appeased with offerings of bread and salt, but in most stories, they are too powerful to be defeated.	Folklore and legends passed down through generations in Russian culture.
-
-        </p><p><strong>16	Dragon King	Chinese Mythology</strong>	The Dragon King is the ruler of the sea and the dragon gods. He has the power to control the weather and is associated with storms and rainfall. The Dragon King is often depicted with a dragon's head and a human body.	The Dragon King is said to have originated from the Chinese belief in dragons as powerful, mythological creatures that represent strength and good luck.	In Chinese mythology, the Dragon King is not considered to be a malevolent creature, and therefore, there is no known way to defeat him.	Chinese folklore, literature, and art
-        
-        </p><p><strong>17	Qiuniu	Chinese Mythology</strong>	Qiuniu is a sea monster in Chinese mythology that has the head of a dragon, the tail of a fish, and a horn on its head. It is said to live in the Yellow River and is associated with floods.	The origin of Qiuniu is unknown, but it is often depicted in Chinese art and literature as a fierce creature that can cause great harm to humans.	According to legend, Qiuniu can be defeated by a brave hero who can cut off its horn. Once the horn is removed, Qiuniu loses its power and can be killed easily.	Chinese folklore, literature, and art
-        
-        </p><p><strong>18	Dragon Turtle	Chinese Mythology</strong>	The Dragon Turtle is a sea monster in Chinese mythology that has the head and claws of a dragon and the body of a turtle. It is often depicted with a small dragon on its back. The Dragon Turtle is said to be a symbol of longevity and good luck.	The Dragon Turtle originated from the Chinese belief that turtles are long-lived creatures that possess magical powers. The addition of the dragon's head and claws represents strength and power.	In Chinese mythology, the Dragon Turtle is not considered to be a malevolent creature, and therefore, there is no known way to defeat it.	Chinese folklore, literature, and art
-        
-        </p><p><strong>19	Ao Guang	Chinese Mythology</strong>	Ao Guang is a dragon king in Chinese mythology who rules over the Eastern Sea. He is one of the four dragon kings in Chinese mythology and is associated with rain, clouds, and thunder.	The origin of Ao Guang is unknown, but he is often depicted in Chinese art and literature as a powerful and wise ruler.	In Chinese mythology, Ao Guang is not considered to be a malevolent creature, and therefore, there is no known way to defeat him.	Chinese folklore, literature, and art
-        
-        </p><p><strong>20	Gong Gong	Chinese Mythology</strong>	Gong Gong is a sea monster in Chinese mythology who is associated with floods and chaos. He has the head of a dragon and the body of a serpent. Gong Gong is often depicted as a malevolent creature who seeks to cause destruction and chaos.	According to Chinese mythology, Gong Gong was responsible for causing the great flood that covered the earth.	Gong Gong is said to be immune to weapons and physical attacks, but can be defeated by powerful magic or divine intervention.	Chinese folklore, literature, and art
-
-        </p><p><strong>21	Bunyip	Various Indigenous Cultures</strong>	A large, amphibious creature that lives in swamps, creeks, and billabongs. It is often described as having a dog-like face, dark fur, and large tusks or horns. In some traditions, it is seen as a malevolent spirit that preys on humans who venture too close to its territory.	The origins of the Bunyip legend are unclear, but it is believed to have been passed down through oral storytelling for thousands of years.	There is no one "definitive" way to defeat a Bunyip, as different Indigenous cultures have different beliefs about the creature and how to interact with it. Some believe that showing respect and leaving offerings can appease the Bunyip and prevent it from attacking, while others believe that using certain words or rituals can protect against its wrath.	Various Indigenous legends, as well as colonial-era accounts of encounters with the Bunyip.
-
-        </p><p><strong>22	Yurlunggur	Yolngu mythology</strong>	A powerful rainbow serpent that lives in the deep waters of rivers and billabongs. It is believed to have created the landscape and the animals that inhabit it, and is associated with the cycle of life, death, and rebirth.	According to Yolngu mythology, Yurlunggur emerged from the ocean during the Dreamtime, a period of creation and spiritual awakening.	Yurlunggur is a revered figure in Yolngu culture, and is not typically seen as a malevolent force. However, like all spiritual beings, it must be treated with respect and caution.	Traditional Yolngu beliefs and practices, as well as accounts from non-Indigenous observers.
-        
-        </p><p><strong>23	Namorrodor	Lardil mythology</strong>	A powerful spirit that lives in the waters surrounding the Gulf of Carpentaria. It is often depicted as a giant serpent with a head like a crocodile, and is believed to control the tides and the movements of fish and other sea creatures.	According to Lardil mythology, Namorrodor is one of the "old spirits" that have inhabited the region since the Dreamtime.	Namorrodor is not typically seen as a malevolent force, but is treated with great respect and deference by the Lardil people.	Traditional Lardil beliefs and practices, as well as accounts from non-Indigenous observers.
-
-        <h2>Items</h2>
-
-        <h2>Levels</h2>
-
-        <h2>Development</h2>   
-
-        <h2>References</h2> 
-
-        <h2>External Links</h2> 
-
-        <h2>Gallery</h2>
-
-        <h2>Trivia</h2>
-
-        <h2>See Also</h2>
-
-
-        <canvas id="gameCanvas" width="800" height="600"></canvas>
-        <script>
-            const canvas = document.getElementById("gameCanvas");
-            const ctx = canvas.getContext("2d");
-      
-            // Player object
-            const player = {
-              x: canvas.width / 2,
-              y: canvas.height - 30,
-              width: 20,
-              height: 20,
-              speed: 5,
-              color: "#0095DD",
-              isAlive: true,
-            };
-      
-            // Bullet object
-            function Bullet(x, y, speed, color, isEnemyBullet) {
-              this.x = x;
-              this.y = y;
-              this.radius = 5;
-              this.speed = speed;
-              this.color = color;
-              this.isEnemyBullet = isEnemyBullet;
+          if(e.shoot<=0){
+            e.shoot = 0.9;
+            // small aimed tri-shot
+            for(let o of [-0.12,0,0.12]){
+              const aa = a+o;
+              const v = fromAng(aa, 100 + wave.num*4);
+              spawnBullet(e.x,e.y,v.x,v.y, 2, 1, false, PAL.lightred, 2.8);
             }
-      
-            // Enemy object
-            function Enemy(x, y, width, height, speed, color) {
-              this.x = x;
-              this.y = y;
-              this.width = width;
-              this.height = height;
-              this.speed = speed;
-              this.color = color;
-              this.fireRate = 1000; // Fire a bullet every 1 second
-              this.lastFired = Date.now(); // Track the last time the enemy fired a bullet
+          }
+        },
+        draw(e){
+          tri(e.x,e.y, angleToPlayer(e), PAL.lightred, 7*SPR);
+        }
+      });
+    }
+    if(kind==='tuna'){ // chunky, spawns minnows on death
+      enemies.push({
+  type:'tuna', x,y, r:7*SPR, hp: 6+Math.floor(wave.num*0.8), speed:30,
+        value: 6,
+        t:0, shoot:1.1,
+        update(e,dt){
+          e.t+=dt; e.shoot-=dt;
+          // Slow stalk
+          const a = angTo(e.x,e.y, player.x, player.y);
+          e.x += Math.cos(a)*e.speed*dt;
+          e.y += Math.sin(a)*e.speed*dt;
+          if(e.shoot<=0){
+            e.shoot = 1.4;
+            // sweeping arc
+            const base = a - 0.6;
+            for(let i=0;i<5;i++){
+              const aa = base + i*0.3;
+              const v = fromAng(aa, 90 + wave.num*3);
+              spawnBullet(e.x,e.y, v.x, v.y, 2, 1, false, PAL.yellow, 3.0);
             }
-      
-            // Arrays to hold bullets and enemies
-            const bullets = [];
-            const enemies = [];
-      
-            // Keyboard event listeners
-            const keyState = {};
-            document.addEventListener("keydown", (event) => {
-              keyState[event.keyCode || event.which] = true;
-            });
-            document.addEventListener("keyup", (event) => {
-              keyState[event.keyCode || event.which] = false;
-            });
-      
-            // Update the game state
-            function update() {
-              if (!player.isAlive) {
-                return; // Don't update the game if the player is dead
-              }
-      
-              // Player movement
-              if (keyState[37] || keyState[65]) {
-                player.x -= player.speed;
-              }
-              if (keyState[39] || keyState[68]) {
-                player.x += player.speed;
-              }
-      
-              // Bullet movement
-              bullets.forEach((bullet) => {
-                if (bullet.isEnemyBullet) {
-                  bullet.y += bullet.speed;
-      
-                  // Check collision with player
-                  if (
-                    bullet.x > player.x &&
-                    bullet.x < player.x + player.width &&
-                    bullet.y > player.y &&
-                    bullet.y < player.y + player.height
-                  ) {
-                    // Player hit by enemy bullet, game over
-                    player.isAlive = false;
-                    console.log("Player hit by enemy bullet! Game over.");
-                  }
-                } else {
-                  bullet.y -= bullet.speed;
-      
-                  // Check collision with enemies
-                  enemies.forEach((enemy, enemyIndex) => {
-                    if (
-                      bullet.x > enemy.x &&
-                      bullet.x < enemy.x + enemy.width &&
-                      bullet.y > enemy.y &&
-                      bullet.y < enemy.y + enemy.height
-                    ) {
-                      // Bullet hit enemy, remove bullet and enemy
-                      bullets.splice(bullets.indexOf(bullet), 1);
-                      enemies.splice(enemyIndex, 1);
-                    }
-                  });
-                }
-      
-                // Remove bullets that are off-screen
-                if (
-                  bullet.y < 0 ||
-                  bullet.y > canvas.height ||
-                  bullet.x < 0 ||
-                  bullet.x > canvas.width
-                ) {
-                  bullets.splice(bullets.indexOf(bullet), 1);
-                }
-              });
-      
-              // Enemy movement and shooting
-              enemies.forEach((enemy) => {
-                enemy.y += enemy.speed;
-      
-                // Check collision with player
-                if (
-                  player.isAlive &&
-                  enemy.x < player.x + player.width &&
-                  enemy.x + enemy.width > player.x &&
-                  enemy.y < player.y + player.height &&
-                  enemy.y + enemy.height > player.y
-                ) {
-                  // Player hit by enemy, game over
-                  player.isAlive = false;
-                  console.log("Player hit by enemy! Game over.");
-                }
-      
-                // Fire bullets
-                const currentTime = Date.now();
-                if (currentTime - enemy.lastFired > enemy.fireRate) {
-                  const bullet = new Bullet(
-                    enemy.x + enemy.width / 2,
-                    enemy.y + enemy.height,
-                    3,
-                    "#FF0000",
-                    true
-                  );
-                  bullets.push(bullet);
-                  enemy.lastFired = currentTime;
-                }
-              });
-            }
-      
-            // Render the game state
-            function draw() {
-              // Clear the canvas
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-              // Draw player
-              if (player.isAlive) {
-                ctx.fillStyle = player.color;
-                ctx.fillRect(player.x, player.y, player.width, player.height);
-              }
-      
-              // Draw bullets
-              bullets.forEach((bullet) => {
-                ctx.beginPath();
-                ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2, false);
-                ctx.fillStyle = bullet.color;
-                ctx.fill();
-                ctx.closePath();
-              });
-      
-              // Draw enemies
-              enemies.forEach((enemy) => {
-                ctx.fillStyle = enemy.color;
-                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-              });
-            }
-      
-            // Game loop
-            function gameLoop() {
-              update();
-              draw();
-              requestAnimationFrame(gameLoop);
-            }
-      
-            // Create new bullet
-            function createBullet() {
-              if (!player.isAlive) {
-                return; // Don't create bullets if the player is dead
-              }
-              const bullet = new Bullet(
-                player.x + player.width / 2,
-                player.y,
-                3,
-                "#FF0000",
-                false
-              );
-              bullets.push(bullet);
-            }
-      
-            // Create new enemy
-            function createEnemy() {
-              const enemyWidth = 30;
-              const enemyHeight = 30;
-              const enemyX = Math.random() * (canvas.width - enemyWidth);
-              const enemyY = -enemyHeight;
-              const enemySpeed = Math.random() * 2 + 1;
-              const enemyColor = "#00FF00";
-              const enemy = new Enemy(
-                enemyX,
-                enemyY,
-                enemyWidth,
-                enemyHeight,
-                enemySpeed,
-                enemyColor
-              );
-              enemies.push(enemy);
-            }
-      
-            // Start the game loop
-            gameLoop();
-      
-            // Fire bullets on spacebar press
-            document.addEventListener("keydown", (event) => {
-              if (event.keyCode === 32) {
-                createBullet();
-              }
-            });
-      
-            // Create enemies at intervals
-            setInterval(createEnemy, 1000);
-          </script>
+          }
+        },
+        draw(e){
+          rect(e.x-6*SPR,e.y-2*SPR, 12*SPR,4*SPR, PAL.yellow);
+          dotEye(e.x+3*SPR,e.y-1*SPR);
+        },
+        onDeath(e){
+          for(let i=0;i<3;i++) spawnEnemy('minnow');
+        }
+      });
+    }
+  }
 
+  function spawnBoss() {
+    const names = (wave.num>=10 || player.mythicChance>0.1)
+      ? ['kraken','leviathan']
+      : ['kraken']; // first boss is Kraken
+    const pick = R.pick(names);
+    if(pick==='kraken') spawnKraken();
+    if(pick==='leviathan') spawnLeviathan();
+  }
 
-    </body>
+  function spawnKraken() {
+    const x=W*0.6, y=H*0.5;
+    enemies.push({
+  type:'boss', name:'Kraken', x,y, r:13*SPR, hp: 40 + wave.num*6, speed:10,
+      value: 25,
+      t:0, burst:1.2, ring:0.6, arm:0,
+      update(e,dt){
+        e.t+=dt; e.burst-=dt; e.ring-=dt;
+        // subtle drift
+        e.x += Math.cos(e.t*0.4)*e.speed*dt;
+        e.y += Math.sin(e.t*0.6)*e.speed*dt;
+
+        if(e.ring<=0){
+          e.ring = 1.4 - Math.min(0.9, wave.num*0.03);
+          // rotating ring
+          const n = 16;
+          for(let i=0;i<n;i++){
+            const ang = (i/n)*TAU + e.t*0.8;
+            const v = fromAng(ang, 70 + wave.num*2);
+            spawnBullet(e.x, e.y, v.x, v.y, 2, 1, false, PAL.lightmagenta, 4.0);
+          }
+        }
+        if(e.burst<=0){
+          e.burst = 2.6 - Math.min(1.4, wave.num*0.05);
+          // aimed arms: several short spirals
+          for(let s=0;s<4;s++){
+            const base = angTo(e.x,e.y, player.x, player.y) + s*(TAU/4);
+            for(let j=0;j<6;j++){
+              const aa = base + j*0.10;
+              const v = fromAng(aa, 110 + j*6);
+              spawnBullet(e.x, e.y, v.x, v.y, 2, 1, false, PAL.lightcyan, 3.2);
+            }
+          }
+        }
+      },
+      draw(e){
+        // body
+        circle(e.x,e.y,e.r, PAL.magenta);
+        // eyes
+  rect(e.x-3*SPR, e.y-2*SPR, 2*SPR,2*SPR, PAL.yellow);
+  rect(e.x+2*SPR, e.y-2*SPR, 2*SPR,2*SPR, PAL.yellow);
+        // tentacles (wavy lines)
+        ctx.strokeStyle = PAL.magenta; ctx.lineWidth = 1;
+        for(let i=0;i<6;i++){
+          const a = e.t*0.9 + i*TAU/6;
+          const len = 18*SPR;
+          const x1 = e.x + Math.cos(a)*e.r;
+          const y1 = e.y + Math.sin(a)*e.r;
+          const x2 = x1 + Math.cos(a+Math.sin(e.t+i)*0.6)*len;
+          const y2 = y1 + Math.sin(a+Math.sin(e.t+i)*0.6)*len;
+          line(x1,y1,x2,y2);
+        }
+      }
+    });
+  }
+
+  function spawnLeviathan() {
+    const dir = R.pick([-1,1]);
+    enemies.push({
+  type:'boss', name:'Leviathan', x: dir>0? -20: W+20, y:H*0.5, r:10*SPR, hp: 55 + wave.num*7, speed:26,
+      value: 35,
+      t:0, volley:0.9,
+      update(e,dt){
+        e.t+=dt; e.volley-=dt;
+        // serpentine pass across screen
+        e.x += dir*e.speed*dt;
+        e.y = H*0.5 + Math.sin(e.t*1.8)*40;
+        if(e.x < -40 || e.x > W+40) e.x = dir>0? -20: W+20; // loop passes
+
+        if(e.volley<=0){
+          e.volley = 1.2 - Math.min(0.7, wave.num*0.03);
+          // sweeping fan of aimed shots
+          const base = angTo(e.x,e.y, player.x, player.y);
+          for(let i=-3;i<=3;i++){
+            const aa = base + i*0.12;
+            const v = fromAng(aa, 130 + wave.num*3);
+            spawnBullet(e.x, e.y, v.x, v.y, 2, 1, false, PAL.lightred, 3.5);
+          }
+          // rear spines (radial)
+          const n=8;
+          for(let i=0;i<n;i++){
+            const ang = (i/n)*TAU + e.t*0.5;
+            const v = fromAng(ang, 60 + wave.num*2);
+            spawnBullet(e.x-10*dir, e.y, v.x, v.y, 2, 1, false, PAL.yellow, 3.5);
+          }
+        }
+      },
+      draw(e){
+        // head segment
+  rect(e.x-8*SPR, e.y-4*SPR, 16*SPR,8*SPR, PAL.red);
+  dotEye(e.x+ (dir<0?-5*SPR:5*SPR), e.y-2*SPR);
+        // body segments sine
+        for(let i=1;i<=5;i++){
+          const ox = e.x - i*10*dir*SPR;
+          const oy = e.y + Math.sin(e.t*2 + i*0.6)*5*SPR;
+          rect(ox-6*SPR, oy-3*SPR, 12*SPR,6*SPR, PAL.lightred);
+        }
+      }
+    });
+  }
+
+  // ===== Drawing helpers (pixel primitives) =====
+  function rect(x,y,w,h, color){ ctx.fillStyle=color; ctx.fillRect(x|0,y|0,w|0,h|0); }
+  function circle(x,y,r, color){ ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x|0,y|0,r|0,0,TAU); ctx.fill(); }
+  function line(x1,y1,x2,y2){ ctx.beginPath(); ctx.moveTo(x1|0,y1|0); ctx.lineTo(x2|0,y2|0); ctx.stroke(); }
+  function tri(x,y, ang, color, size){
+    ctx.fillStyle = color;
+    const a1 = ang, a2=ang+2.6, a3=ang-2.6;
+    const p1 = {x:x+Math.cos(a1)*size, y:y+Math.sin(a1)*size};
+    const p2 = {x:x+Math.cos(a2)*(size*0.7), y:y+Math.sin(a2)*(size*0.7)};
+    const p3 = {x:x+Math.cos(a3)*(size*0.7), y:y+Math.sin(a3)*(size*0.7)};
+    ctx.beginPath(); ctx.moveTo(p1.x|0,p1.y|0); ctx.lineTo(p2.x|0,p2.y|0); ctx.lineTo(p3.x|0,p3.y|0); ctx.closePath(); ctx.fill();
+  }
+  function dotEye(x,y){ rect(x,y,1,1, PAL.white); }
+
+  function angleToPlayer(e){ return angTo(e.x,e.y, player.x, player.y); }
+
+  // ===== Ambient NPCs (Pets + Taylor) =====
+  const AMBIENT_NPCS = [
+    { id:'barnacle', tOff:0.0, speed:0.35 }, // cat
+    { id:'skipper',  tOff:1.7, speed:0.42 }, // dog
+    { id:'taylor',   tOff:3.1, speed:0.25 }  // neighbor
+  ];
+
+  function drawNPC(type, x, y, facing){
+    // facing: 1 = right, -1 = left
+    if(type==='barnacle'){
+      // small cat: body + head + tail spots
+      rect(x-4, y-3, 8,6, PAL.lightgray);
+      rect(x+(facing>0?2:-6), y-5, 4,4, PAL.white); // head
+      rect(x+(facing>0?-6:4), y-2, 3,2, PAL.darkgray); // tail
+      rect(x-2, y-1, 2,1, PAL.brown);
+    } else if(type==='skipper'){
+      // playful dog
+      rect(x-6, y-4, 12,8, PAL.lightbrown||PAL.brown);
+      rect(x+(facing>0?3:-7), y-6, 4,4, PAL.yellow);
+      rect(x+(facing>0?-8:4), y-3, 3,3, PAL.darkgray); // tail
+    } else if(type==='taylor'){
+      // human (torso + head + legs)
+      rect(x-4, y-10, 8,10, PAL.blue);
+      rect(x-3, y-14, 6,4, PAL.lightgray);
+      rect(x-4, y, 3,4, PAL.green);
+      rect(x+1, y, 3,4, PAL.green);
+    }
+  }
+
+  function drawAmbientNPCs(context){
+    // context: 'title' | 'town' | 'play'
+    const t = performance.now()/1000;
+    let landX = 0, landW = 140, top=0, bottom=H;
+    if(context==='play'){ landW = 36; }
+    if(context==='town'){ landW = W; top = H-140; }
+    // path rectangle inside land
+    for(const n of AMBIENT_NPCS){
+      const amp = (landW - 24);
+  // Apply a slower cycle in town (more leisurely pace)
+  const speedMul = context==='town' ? 0.35 : 1; // ~1/3 speed in town
+  const cycT = (t+n.tOff)*n.speed*speedMul;
+  const phase = Math.sin(cycT*TAU*0.5);
+  const dir = Math.cos(cycT*TAU*0.5) >=0? 1:-1;
+      const x = landX + 12 + (phase*0.5+0.5)*amp;
+      let y;
+      if(context==='town') y = top + 40 + (n.id==='taylor'?10: (n.id==='skipper'?55:30));
+      else if(context==='title') y = 520 + (n.id==='taylor'? -40 : (n.id==='skipper'?10:0));
+      else y = 40 + (n.id==='taylor'? 40 : (n.id==='skipper'?70:10)); // play (vertical strip)
+      drawNPC(n.id, x|0, y|0, dir);
+    }
+  }
+
+  // ===== Backdrops =====
+  function drawBackdrop() {
+    // Water color by zone
+    const zone = wave.zoneIndex;
+    const water = [PAL.lightblue, PAL.blue, '#001e60', '#00113d', '#0a0022'][clamp(zone,0,4)];
+    ctx.fillStyle = water; ctx.fillRect(0,0,W,H);
+
+    // Fake dithering waves
+    for(let y=0;y<H;y+=4){
+      ctx.fillStyle = (y/4%2===0)? PAL.darkgray : 'transparent';
+      for(let x=((y/4)%2)*2; x<W; x+=4) ctx.fillRect(x, y, 1, 1);
+    }
+
+  // (Land & dock now drawn later (foreground pass) so fish appear behind them.)
+  // Rocks obstacles
+  for(const rk of rocks){ circle(rk.x, rk.y, rk.r, PAL.darkgray); }
+  }
+
+  // ===== Player actions =====
+  function playerShoot() {
+    if(player.fireCd>0) return;
+    player.fireCd = player.fireDelay;
+
+    const aAim = angTo(player.x, player.y, mouse.x, mouse.y);
+    const spread = (player.shotCount>1)? 0.12 : 0;
+    const count = player.shotCount;
+    const base = -((count-1)*spread)/2;
+
+    for(let i=0;i<count;i++){
+      let a = aAim + base + i*spread;
+
+      // tiny aim assist: bias angle toward nearest enemy
+      if(player.aimAssist && enemies.length){
+        let best=null, bestd=1e9;
+        for(const e of enemies){
+          const d2 = dist2(player.x,player.y, e.x,e.y);
+          if(d2<bestd){ best=e; bestd=d2; }
+        }
+        if(best){
+          const toE = angTo(player.x,player.y, best.x, best.y);
+          const diff = Math.atan2(Math.sin(toE-a), Math.cos(toE-a));
+          a += clamp(diff, -0.12, 0.12);
+        }
+      }
+
+      const v = fromAng(a, player.bulletSpeed);
+      spawnBullet(player.x, player.y, v.x, v.y, 2, player.damage, true, PAL.white, 1.6);
+    }
+
+    // Harpoon "line" flash
+    spawnParticles(player.x, player.y, 2, PAL.lightgray);
+  }
+
+  // ===== Wave logic =====
+  function updateSpawns(dt){
+    if(wave.boss){
+      // wait for boss defeat -> open shop
+      if(enemies.length===0 && !wave.cleared){
+        wave.cleared = true; openShop();
+      }
+      return;
+    }
+
+    wave.spawnTimer -= dt;
+    if(wave.spawnTimer<=0 && wave.toSpawn>0){
+      wave.spawnTimer = 0.4 - Math.min(0.25, wave.num*0.01);
+      wave.toSpawn--;
+
+      // Choose enemy type based on wave, bait biases, and zone
+      const weights = [];
+      weights.push(['minnow', 6 + Math.max(0, 2*wave.num) + (player.baitSmallBonus>0?4:0)]);
+      if(wave.num>=2) weights.push(['puffer', 1 + Math.floor(wave.num/3)]);
+      if(wave.num>=3) weights.push(['cuda', 1 + Math.floor(wave.num/2)]);
+      if(wave.num>=5 || player.bigFishBias>0) weights.push(['tuna', 1 + Math.floor(wave.num/3) + Math.floor(player.bigFishBias*5)]);
+
+      // weighted pick
+      const sum = weights.reduce((s,w)=>s+w[1],0);
+      let r = Math.random()*sum;
+      let kind = 'minnow';
+      for(const [k, w] of weights){ r-=w; if(r<=0){ kind=k; break; } }
+      spawnEnemy(kind);
+    }
+
+    if(wave.toSpawn<=0 && enemies.length===0 && !wave.cleared){
+      wave.cleared = true;
+      openShop();
+    }
+  }
+
+  // ===== Update & Draw =====
+  function update(dt) {
+    if(state===STATE.TITLE){
+      titleBlink += dt;
+      return;
+    }
+  if(state===STATE.PAUSE) return;
+  if(state===STATE.SHOP || state===STATE.GAMEOVER || state===STATE.TOWN || state===STATE.WIN) return;
+
+    // Movement
+    const up = keys['w']||keys['arrowup'];
+    const down = keys['s']||keys['arrowdown'];
+    const left = keys['a']||keys['arrowleft'];
+    const right = keys['d']||keys['arrowright'];
+
+    let ax = (right?1:0) - (left?1:0);
+    let ay = (down?1:0) - (up?1:0);
+    const len = Math.hypot(ax,ay)||1;
+    ax/=len; ay/=len;
+
+    player.vx = ax*player.speed;
+    player.vy = ay*player.speed;
+    player.x += player.vx*dt;
+    player.y += player.vy*dt;
+
+    // keep in water area if on foot
+  const landX = DOCK_X;
+    if(player.shipLevel===0){
+      if(player.x<landX+player.r) player.x=landX+player.r;
+    }
+  // keep in bounds
+    player.x = clamp(player.x, player.r, W-player.r);
+    player.y = clamp(player.y, player.r, H-player.r);
+
+  // Shore safe zone (land + dock). Prevent enemy contact deaths here but allow bullets.
+  player.onShore = (wave.zoneIndex<=1 && (
+    player.x < DOCK_X ||
+    (player.x>=DOCK_X && player.x<=DOCK_X+DOCK_W && player.y>= (H/2-DOCK_H/2) && player.y<= (H/2+DOCK_H/2))
+  ));
+  // Removed automatic Enter-to-Town while playing to prevent accidental immediate return
+  // if(state===STATE.PLAYING && player.onShore && keys['enter']) { state = STATE.TOWN; return; }
+    // Automatic town entry if overlapping hut
+    if(state===STATE.PLAYING && player.onShore && player.x >= TOWN_HUT.x && player.x <= TOWN_HUT.x+TOWN_HUT.w && player.y >= TOWN_HUT.y && player.y <= TOWN_HUT.y+TOWN_HUT.h){
+      state = STATE.TOWN; return;
+    }
+
+    // Shooting
+    player.fireCd = Math.max(0, player.fireCd-dt);
+    if(mouse.down || keys[' ']) playerShoot();
+
+    // Invulnerability timera
+    player.invuln = Math.max(0, player.invuln - dt);
+
+    // Spawns
+    updateSpawns(dt);
+
+    // Update bullets
+    for(let i=bullets.length-1;i>=0;i--){
+      const b = bullets[i];
+      b.x += b.vx*dt; b.y += b.vy*dt;
+      b.life -= dt;
+      if(b.life<=0 || b.x<-4 || b.y<-4 || b.x>W+4 || b.y>H+4) bullets.splice(i,1);
+    }
+
+    // Update enemies
+    for(let i=enemies.length-1;i>=0;i--){
+      const e = enemies[i];
+      if(e.update) e.update(e,dt);
+
+      // Collide with player (contact)
+  const d2p = dist2(e.x,e.y, player.x, player.y);
+  const rr = (e.r+player.r)*(e.r+player.r);
+  if(d2p<rr && !player.onShore) { state = STATE.TITLE; return; }
+    }
+
+    // Collisions: bullets
+    for(let i=bullets.length-1;i>=0;i--){
+      const b = bullets[i];
+      if(b.friendly){
+        // vs enemies
+        let hit = false;
+        for(let j=enemies.length-1;j>=0;j--){
+          const e = enemies[j];
+          const rr = (e.r + b.r)*(e.r + b.r);
+          if(dist2(b.x,b.y,e.x,e.y) < rr){
+            let dmg = b.dmg;
+            if(Math.random()<player.crit) dmg *= 2;
+            e.hp -= dmg;
+            spawnParticles(b.x, b.y, 2, PAL.lightgray);
+            bullets.splice(i,1); hit=true; break;
+          }
+        }
+        if(hit) continue;
+      } else {
+        // enemy bullet vs player
+        const rr = (player.r + b.r)*(player.r + b.r);
+        if(dist2(b.x,b.y, player.x, player.y) < rr){
+          bullets.splice(i,1);
+          hurtPlayer(1);
+          continue;
+        }
+      }
+    }
+
+    // Kill enemies at <=0 hp
+    for(let i=enemies.length-1;i>=0;i--){
+      const e = enemies[i];
+      if(e.hp<=0){
+        spawnParticles(e.x,e.y, 10, PAL.lightgray);
+        if(e.onDeath) e.onDeath(e);
+        // coins drop (bait bonus for minnows)
+        let value = e.value||1;
+        if(e.type==='minnow') value += Math.round(value*player.baitSmallBonus);
+        if(e.type==='boss') value += 10;
+        dropCoins(e.x,e.y, value);
+        enemies.splice(i,1);
+      }
+    }
+
+    // Update particles
+    for(let i=particles.length-1;i>=0;i--){
+      const p = particles[i];
+      p.x += p.vx*dt; p.y += p.vy*dt;
+      p.vx *= 0.98; p.vy *= 0.98;
+      p.life -= dt;
+      if(p.life<=0) particles.splice(i,1);
+    }
+
+    // Drops
+    for(let i=drops.length-1;i>=0;i--){
+      const d = drops[i];
+      d.x += d.vx*dt; d.y += d.vy*dt;
+      d.vx *= 0.95; d.vy *= 0.95;
+      // mild magnet
+      const a = angTo(d.x,d.y, player.x, player.y);
+      const v = fromAng(a, 20*dt);
+      d.x += v.x; d.y += v.y;
+      if(dist2(d.x,d.y, player.x,player.y) < (player.r+2)*(player.r+2)){
+        player.coins += d.amount;
+        drops.splice(i,1);
+      }
+    }
+
+    // Rock collision instant crash
+    for(const rk of rocks){
+      if(dist2(player.x,player.y,rk.x,rk.y) < (player.r+rk.r)*(player.r+rk.r)) { state = STATE.TITLE; return; }
+    }
+  }
+
+  function hurtPlayer(amount){
+    if(player.invuln>0) return;
+    player.hp -= amount;
+    player.invuln = 1.0;
+    spawnParticles(player.x, player.y, 12, PAL.lightred);
+  }
+
+  function draw() {
+  // backdrop (water only; land/dock drawn later to cover fish)
+  drawBackdrop();
+
+  // enemies (fish) drawn first so land/dock can cover them
+  for(const e of enemies){ if(e.draw) e.draw(e); else circle(e.x,e.y,e.r,PAL.cyan); }
+    // Shore foreground (dock planks, structures, NPCs) above fish; bullets/drops drawn afterward
+    if(wave.zoneIndex<=1){
+      // Land base (covers any fish underneath) + shore edge rocks
+      rect(0,0, DOCK_X, H, PAL.brown);
+      for(let i=0;i<14;i++) rect(DOCK_X-12 + (i%2? -3:0), i*16+4, 4, 10, PAL.darkgray);
+      // Dock slab (base)
+      rect(DOCK_X, H/2-DOCK_H/2, DOCK_W, DOCK_H, PAL.brown);
+      // Dock planks overlay (thin boards) + subtle shadow at underside
+      rect(DOCK_X, H/2+DOCK_H/2-2, DOCK_W, 2, PAL.darkgray);
+      for(let i=0;i<DOCK_W;i+=7){ rect(DOCK_X+i, H/2-DOCK_H/2, 5, DOCK_H, PAL.brown); }
+  // Water shimmer just below dock
+  ctx.fillStyle = 'rgba(85,255,255,0.20)';
+  ctx.fillRect(DOCK_X, H/2+DOCK_H/2, DOCK_W, 2);
+  // Fence posts along land edge
+  for(let y=6; y<H; y+=34){ rect(DOCK_X-4, y, 4, 26, PAL.darkgray); rect(DOCK_X-4, y, 4, 4, PAL.lightgray); }
+  // Horizontal rail (simple)
+  rect(DOCK_X-4, 12, 4, H-24, PAL.darkgray);
+      // Lighthouse
+      rect(14, 30, 8, 64, PAL.white);
+      rect(14, 44, 8, 6, PAL.red);
+      rect(14, 60, 8, 6, PAL.red);
+      rect(14, 76, 8, 6, PAL.red);
+      rect(12, 26, 12, 8, PAL.yellow); // light room
+      const tL = (performance.now()/1000)%6;
+      ctx.fillStyle = 'rgba(255,255,85,0.14)';
+      ctx.beginPath(); ctx.moveTo(18, 30);
+      const angL = -0.3 + Math.sin(tL)*0.5; const farL = 180;
+      ctx.lineTo(18+Math.cos(angL-0.15)*farL, 30+Math.sin(angL-0.15)*farL);
+      ctx.lineTo(18+Math.cos(angL+0.15)*farL, 30+Math.sin(angL+0.15)*farL);
+      ctx.closePath(); ctx.fill();
+  // Lighthouse parallax shadow (oscillates slightly)
+  const tNow = performance.now()/1000;
+  const shOff = Math.sin(tNow*0.7)*2;
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(18+shOff, 98, 18, 6, 0, 0, Math.PI*2);
+  ctx.fill();
+      // Hut (larger)
+      rect(TOWN_HUT.x, TOWN_HUT.y+6, TOWN_HUT.w, TOWN_HUT.h-6, PAL.darkgray);
+      rect(TOWN_HUT.x, TOWN_HUT.y, TOWN_HUT.w, 8, PAL.red);
+      // door/window
+      rect(TOWN_HUT.x+6, TOWN_HUT.y+12, 8,6, PAL.yellow);
+  // Animated hut sign (bobbing)
+  const signY = TOWN_HUT.y - 4 + Math.sin(tNow*2)*2;
+  outlineText('TOWN', TOWN_HUT.x+TOWN_HUT.w/2, signY, 0.9*SPR, PAL.yellow, PAL.black);
+      // Ambient characters
+      drawAmbientNPCs('play');
+    }
+
+    // Bullets (both enemy & player) drawn over dock structures
+    for(const b of bullets){
+      ctx.fillStyle = b.color;
+      ctx.fillRect((b.x-b.r)|0,(b.y-b.r)|0, (b.r*2)|0, (b.r*2)|0);
+    }
+
+    // drops
+    for(const d of drops){
+      rect(d.x-1, d.y-1, 2,2, PAL.yellow);
+    }
+
+    // player (boat sprite if any)
+    if(player.shipLevel>0){
+      // tiny 3-color boat
+      rect(player.x-5, player.y-3, 10,6, PAL.brown);
+      rect(player.x-4, player.y-2, 8,4, PAL.lightgray);
+      rect(player.x-1, player.y-6, 2,4, PAL.yellow); // mast light
+    }
+    // fisher
+  tri(player.x, player.y, angTo(player.x,player.y, mouse.x,mouse.y), player.invuln>0? PAL.lightcyan: PAL.white, 6*SPR);
+
+    // particles
+    for(const p of particles){ rect(p.x, p.y, 1,1, p.color); }
+
+    // UI
+    drawUI();
+
+  // Title / Shop / Game Over overlays
+  if(state===STATE.TITLE) drawTitle();
+  if(state===STATE.SHOP) drawShop();
+  if(state===STATE.GAMEOVER) drawGameOver();
+  if(state===STATE.PAUSE) drawPause();
+  if(state===STATE.TOWN) drawTown();
+  if(state===STATE.WIN) drawWin();
+  }
+
+  function drawUI(){
+    // HP
+    for(let i=0;i<player.maxHp;i++){
+      const x=6+i*6, y=6;
+      rect(x,y, 4,3, i<player.hp? PAL.lightred: PAL.darkgray);
+    }
+
+    // Coins
+    rect(6, 14, 3,3, PAL.yellow);
+    ctx.fillStyle = PAL.white;
+    ctx.fillText(`${player.coins} scales`, 12, 18);
+
+    // Wave + Zone
+    ctx.fillStyle = PAL.white;
+    const zoneName = ZONES[wave.zoneIndex];
+  if(state===STATE.PLAYING) ctx.fillText(`Wave ${wave.num} — ${zoneName}`, W-188, 12);
+
+    // Ship status
+    const ships = ['Shore','Rowboat','Motorboat','Trawler'];
+  ctx.fillText(`Ship: ${ships[player.shipLevel]}`, W-188, 22);
+  if(gameMode.hard){ ctx.fillStyle = PAL.lightred; ctx.fillText('HARD', W-60, 12); }
+  }
+
+  function drawTitle() {
+    // Expanded title screen background (soft vignette + subtle waves)
+    const tNow = performance.now()/1000;
+    const grad = ctx.createRadialGradient(W/2,H/2, 50, W/2,H/2, Math.max(W,H));
+    grad.addColorStop(0,'#001a33');
+    grad.addColorStop(1,'#000008');
+    ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+    // animated horizontal wave bands
+    ctx.globalAlpha = 0.12;
+    for(let y=0;y<H;y+=12){
+      const off = Math.sin(tNow*0.4 + y*0.12)*24;
+      ctx.fillStyle = y%24===0? PAL.blue: PAL.darkgray;
+      ctx.fillRect(off, y, W*0.8, 8);
+    }
+    ctx.globalAlpha = 1;
+
+    // Decorative fish silhouettes (draw BEFORE land so land overlays them)
+    ctx.globalAlpha = 0.25;
+    for(let i=0;i<26;i++){
+      const fx = ( (i*137) % W + (tNow*30 + i*50) ) % W;
+      const fy = (i*53)%H;
+      const a = Math.sin(tNow*0.5 + i)*0.4;
+      tri(fx, fy, 0, PAL.lightcyan, 8*SPR*0.6);
+      tri(fx-30, fy+10, a, PAL.lightblue, 6*SPR*0.6);
+    }
+    ctx.globalAlpha = 1;
+
+  // Land strip & lighthouse (on top of fish/water)
+    rect(0,0, 140, H, PAL.brown);
+    // subtle shadow edge where land meets sea
+    for(let sx=132; sx<140; sx++){
+      ctx.globalAlpha = (sx-132)/16; rect(sx,0,1,H,'#000000');
+    }
+    ctx.globalAlpha = 1;
+    for(let i=0;i<18;i++) rect(120+ (i%2? -4:0), i*20+10, 6, 14, PAL.darkgray);
+    const lx = 80, ly = 400; // reposition lighthouse further down
+    rect(lx-20, ly-320, 40, 320, PAL.white);
+    rect(lx-20, ly-260, 40, 18, PAL.red);
+    rect(lx-20, ly-200, 40, 18, PAL.red);
+    rect(lx-20, ly-140, 40, 18, PAL.red);
+    rect(lx-30, ly-340, 60, 28, PAL.yellow);
+    // beam sweep
+    const beamAng = -0.4 + Math.sin(tNow*0.8)*0.6;
+    ctx.fillStyle = 'rgba(255,255,170,0.22)';
+    ctx.beginPath();
+    ctx.moveTo(lx, ly-332);
+    const far = 420;
+    ctx.lineTo(lx+Math.cos(beamAng-0.18)*far, ly-168+Math.sin(beamAng-0.18)*far);
+    ctx.lineTo(lx+Math.cos(beamAng+0.18)*far, ly-168+Math.sin(beamAng+0.18)*far);
+    ctx.closePath(); ctx.fill();
+
+    // Title text with outline
+    outlineText('AROUND', W/2, 180, 5*SPR, PAL.yellow, PAL.black);
+    outlineText('THE SEA', W/2, 250, 3.4*SPR, PAL.lightcyan, PAL.black);
+    outlineText('A Fishing Game', W/2, 300, 1.2*SPR, PAL.lightgray, PAL.black);
+    outlineText(`Best Wave: ${store.best}`, W/2, 340, 1.2*SPR, PAL.lightgreen, PAL.black);
+
+    // Blinking start prompt
+  if(Math.sin(titleBlink*4)>0) outlineText('Press Enter to Begin', W/2, 390, 1.4*SPR, PAL.white, PAL.black);
+  outlineText(`Hard Mode: ${gameMode.hard? 'ON':'OFF'} (H)`, W/2, 430, 1.0*SPR, PAL.lightmagenta, PAL.black);
+  outlineText('Visit Town (T or Click Land)', W/2, 460, 1.0*SPR, PAL.lightgreen, PAL.black);
+  drawAmbientNPCs('title');
+
+    // Panel for controls / credits
+    const panelW = 480, panelH = 200;
+    const px = W/2 - panelW/2, py = 440;
+    ctx.globalAlpha = 0.55; rect(px,py,panelW,panelH, PAL.black); ctx.globalAlpha=1;
+    ctx.strokeStyle = PAL.darkgray; ctx.lineWidth = 2; ctx.strokeRect(px,py,panelW,panelH);
+    ctx.fillStyle = PAL.white;
+    ctx.font = '12px monospace';
+    const lines = [
+      'Controls:',
+      ' Move: WASD / Arrows    Aim: Mouse    Fire: Click / Space',
+      ' Upgrades: 1/2/3        Reroll: R      Pause: P',
+      ' Town: T or Click Land  Hard Mode: H  Quit Wave: Q (Town)',
+      'Goal: Survive waves, upgrade gear, reach mythic waters.',
+      'Producer: Pieter Tschopp',
+      '© 2025 Fisher of Legends'
+    ];
+    let lyText = py+28;
+    for(const ln of lines){ ctx.fillText(ln, px+20, lyText); lyText+=24; }
+  }
+  
+
+  function drawGameOver(){
+    ctx.fillStyle = PAL.black;
+    ctx.globalAlpha = 0.75;
+    ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha = 1;
+
+    centerText(92, 'You were swallowed by the deep...', PAL.lightred, 1);
+    centerText(112, `Reached Wave ${wave.num}`, PAL.white, 1);
+    centerText(132, `Best Wave ${store.best}`, PAL.lightcyan, 1);
+  centerText(154, 'Press Enter to Try Again', PAL.yellow, 1);
+  centerText(174, 'Press T for Town', PAL.lightgray, 1);
+  }
+
+  function drawPause(){
+    ctx.fillStyle = PAL.black;
+    ctx.globalAlpha = 0.65;
+    ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha = 1;
+    centerText(104, 'Paused', PAL.white, 1);
+    centerText(124, 'Press P to resume', PAL.lightgray, 1);
+  }
+
+  function drawShop(){
+    // backdrop
+    ctx.fillStyle = PAL.black;
+    ctx.globalAlpha = 0.75;
+    ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha = 1;
+
+  centerText(28, 'Harbor Market — Choose 1 Upgrade (T for Town)', PAL.yellow, 1.1);
+  centerText(46, `(R to reroll for ${rerollCost} scales)`, PAL.lightgray, 1);
+
+    if(shopChoices.length===0) shopChoices = rollShopChoices();
+
+    // Enlarged cards
+    ctx.font = '14px monospace';
+    const gap = 40;
+    const cw = 200, ch = 160;
+    const totalW = cw*3 + gap*2;
+    const startX = (W - totalW)/2;
+    const y = 80;
+    for(let i=0;i<3;i++){
+      const x = startX + i*(cw+gap);
+      // hover effect
+      const hover = mouse.x>=x && mouse.x<=x+cw && mouse.y>=y && mouse.y<=y+ch;
+      rect(x-3, y-3, cw+6, ch+6, hover? PAL.lightgray: PAL.darkgray);
+      rect(x, y, cw, ch, hover? '#111922': PAL.black);
+      const upg = shopChoices[i]; if(!upg) continue;
+      ctx.fillStyle = PAL.white;
+      const stackInfo = (upg.maxStacks && upg.maxStacks>1) ? ` (${getUpgradeCount(upg.id)}/${upg.maxStacks})` : '';
+      ctx.fillText(`${i+1}. ${upg.name}${stackInfo}`, x+8, y+22);
+      ctx.fillStyle = {Skill:PAL.lightgreen, Equipment:PAL.lightcyan, Ship:PAL.yellow, Bait:PAL.lightmagenta}[upg.cat]||PAL.lightgray;
+      ctx.fillText(`[${upg.cat}]`, x+8, y+38);
+      ctx.fillStyle = PAL.lightgray;
+      wrapText(upg.desc, x+8, y+54, cw-16, 14);
+    }
+    centerText(y+ch+30, 'Press 1 / 2 / 3 to take • Enter to continue', PAL.white, 1);
+  }
+
+  function centerText(y, text, color, scale=1){
+    ctx.fillStyle = color;
+    ctx.save();
+    ctx.translate(W/2, y);
+    ctx.scale(scale, scale);
+    const w = ctx.measureText(text).width;
+    ctx.fillText(text, -w/2, 0);
+    ctx.restore();
+  }
+  function outlineText(txt, cx, cy, size, fill, outline){
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.font = `${Math.round(16*size/6)}px monospace`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle = outline;
+    for(let ox=-2;ox<=2;ox++) for(let oy=-2;oy<=2;oy++) if(ox||oy) ctx.fillText(txt, ox, oy);
+    ctx.fillStyle = fill; ctx.fillText(txt,0,0);
+    ctx.restore();
+  }
+  function wrapText(text, x, y, maxWidth, lineHeight){
+    const words = text.split(' ');
+    let line = '';
+    for(let n=0;n<words.length;n++){
+      const test = line + words[n] + ' ';
+      const w = ctx.measureText(test).width;
+      if (w > maxWidth && n>0) { ctx.fillText(line, x, y); line = words[n]+' '; y+=lineHeight; }
+      else line = test;
+    }
+    ctx.fillText(line, x, y);
+  }
+
+  // ===== Town Screen =====
+  function drawTown(){
+    ctx.fillStyle = '#0a1e33'; ctx.fillRect(0,0,W,H);
+    rect(0,H-140, W,140, PAL.brown);
+    rect(60, H-240, 180,120, PAL.darkgray); rect(60, H-260, 180,20, PAL.red);
+    rect(280, H-210, 120,90, PAL.darkgray); rect(280, H-230, 120,20, PAL.magenta);
+    outlineText('TOWN DOCK', W/2, 120, 3*SPR, PAL.yellow, PAL.black);
+    outlineText('Press Enter to Sail • Esc Title', W/2, 170, 1.2*SPR, PAL.white, PAL.black);
+    outlineText(`Hard Mode Target Wave: ${LEVEL_TARGET}`, W/2, 200, 1.0*SPR, PAL.lightcyan, PAL.black);
+    ctx.fillStyle = PAL.white; ctx.font='14px monospace';
+    const storyLines = [
+      'Story: Veteran sea dog sent to land legendary fish & monsters.',
+      'Crash into a monster or rock = voyage over.',
+      'Win by clearing all waves on HARD mode.',
+      'Barnacle: Loyal black cat with white barnacle spots.',
+      'Taylor Smith: Retired sailor neighbor; trades stories.',
+      'Skipper: Taylor\'s playful retriever chasing balls.',
+      'Barnacle loves fresh fish you share; never leaves your side.'
+    ];
+    let y=250; for(const l of storyLines){ ctx.fillText(l, 60, y); y+=24; }
+  drawAmbientNPCs('town');
+  }
+
+  function drawWin(){
+    ctx.fillStyle = PAL.black; ctx.globalAlpha=0.7; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1;
+    outlineText('LEGEND SECURED!', W/2, 220, 3.2*SPR, PAL.yellow, PAL.black);
+    outlineText('You conquered the deep on HARD mode.', W/2, 270, 1.2*SPR, PAL.white, PAL.black);
+    outlineText('Barnacle awaits your triumphant return.', W/2, 310, 1.0*SPR, PAL.lightcyan, PAL.black);
+    outlineText('Press Enter to Sail Again', W/2, 350, 1.0*SPR, PAL.lightgreen, PAL.black);
+  }
+
+  // ===== Main loop =====
+  function frame(ts) {
+    let dt = (ts - lastTime)/1000;
+    if(dt>0.1) dt=0.1; // clamp
+    lastTime = ts;
+    accum += dt;
+
+    while(accum >= FIXED_DT){
+      update(FIXED_DT);
+      accum -= FIXED_DT;
+    }
+
+    draw();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // ===== Initial screen =====
+  state = STATE.TITLE;
+
+})();
+</script>
+</body>
 </html>
