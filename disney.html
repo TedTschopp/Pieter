@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Virtual Field Trip — Disney</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎢</text></svg>">
+  <meta name="description" content="A classroom-ready virtual field trip to Disney with videos, activities, and scavenger hunts." />
+  <style>
+    :root {
+      --accent:#ff6f61;
+      --dark:#0b2447;
+      --muted:#f1f5f9;
+      --card:#ffffff;
+      --radius:12px;
+      --maxw:1100px;
+      --gap:18px;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    * { box-sizing: border-box }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #FF7518 0%, #4b0082 100%);
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      background-size: cover;
+      color: #0b2447;
+      display: flex;
+      justify-content: center;
+      padding: 28px;
+    }
+    .wrap { width:100%; max-width:var(--maxw); }
+    header { display:flex; align-items:center; gap:16px; margin-bottom:18px; flex-wrap:wrap }
+    .logo { display:flex; align-items:center; gap:12px }
+    .logo .badge { width:64px; height:64px; background:conic-gradient(from 180deg at 50% 50%, #ffd86a, #ff8fb1); border-radius:16px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#2d1b3b }
+    h1 { margin:0; font-size:1.6rem }
+    .subtitle { margin:0; color:#274061; opacity:.9 }
+
+    nav { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px }
+    .btn {
+      background:var(--card);
+      padding:8px 12px;
+      border-radius:10px;
+      box-shadow:0 6px 18px rgba(11,36,71,0.06);
+      cursor:pointer;
+      border:1px solid rgba(11,36,71,0.06);
+      transition: background 0.3s, transform 0.2s;
+    }
+    .btn:hover {
+      background:#ffe0dc;
+      transform:scale(1.05);
+    }
+
+    main { display:grid; grid-template-columns:1fr 360px; gap:var(--gap); align-items:start; transition:opacity 0.5s ease-in-out; }
+
+    .hero {
+      position: relative;
+      background:linear-gradient(135deg, rgba(255,255,255,0.4), rgba(255,255,255,0.2));
+      padding:18px;
+      border-radius:var(--radius);
+      box-shadow:0 10px 30px rgba(11,36,71,0.06);
+      overflow:hidden;
+    }
+    .hero img {
+      width:100%;
+      border-radius:12px;
+      object-fit:cover;
+      display:block;
+      opacity:0.85;
+    }
+
+  .dedication {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #fff6b7, #f6416c);
+  -webkit-background-clip: text;
+  background-clip: text;          /* Add this line */
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  font-size: 1.1rem;
+  animation: sparkle 2s infinite linear;
+}
+
+
+    @keyframes sparkle {
+      0%, 100% { text-shadow: 0 0 10px #fff, 0 0 20px #ff6f61; }
+      50% { text-shadow: 0 0 20px #fff, 0 0 30px #ffb347; }
+    }
+
+    section.card {
+      background:var(--card);
+      padding:14px;
+      border-radius:12px;
+      box-shadow:0 8px 22px rgba(11,36,71,0.04);
+      margin-bottom:var(--gap);
+      opacity:1;
+      transition:opacity 0.5s ease-in-out;
+    }
+    section.card.hidden { opacity:0; pointer-events:none; position:absolute; }
+
+    iframe { border:none; border-radius:12px; margin-bottom:16px; width:100%; height:315px }
+    iframe:hover { box-shadow:0 0 0 3px rgba(255,111,97,0.3); }
+
+    a { color: #ff6f61; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    footer { margin-top:18px; font-size:0.9rem; color:#6b7a8a }
+
+    @media (max-width:980px) { main { grid-template-columns:1fr } aside { order:2 } }
+   .btn[data-nav="myWebsites"] {
+  font-size: 0.7rem;
+  padding: 1px 4px;
+  border-radius: 10px;
+}
+
+.center {
+    text-align: center;
+
+
+}
+
+
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">
+        <div class="badge">Babbit</div>
+        <div>
+          <h1>Virtual Field Trip — Disney</h1>
+          <p class="subtitle">Explore Disney parks through videos, activities, and fun learning!</p>
+        </div>
+      </div>
+      <nav>
+        <button class="btn" data-nav="home">Home</button>
+        <button class="btn" data-nav="rideVideos">Ride Videos</button>
+        <button class="btn" data-nav="activities">Activities</button>
+        <button class="btn" data-nav="scavenger">Scavenger Hunt</button>
+        <button class="btn" data-nav="aboutMsBabbit">About Ms. Babbit</button>
+        <button class="btn" data-nav="myWebsites">My Websites</button>
+      </nav>
+    </header>
+
+    <main>
+      <div>
+        <section id="home" class="card hero">
+          <div class="dedication">✨ For Ms. Babbit ✨</div>
+          <h2>Welcome to Your Disney Virtual Field Trip!</h2>
+          <p>Enjoy a magical journey through Disneyland and Disney California Adventure with amazing videos and interactive classroom activities. Teachers can share this site during lessons or remote sessions!</p>
+          <img src="Disney_park2.jpeg" alt="Disney park" height="200"/>
+        </section>
+
+        <section id="activities" class="card hidden">
+          <h3>Activities</h3>
+          <div>
+            <h4>Imagineering Challenge</h4>
+            <p>Design your own ride — name it, describe the theme, and draw what it looks like!</p>
+          </div>
+          <div>
+            <h4>Story Time</h4>
+            <p>Pick a Disney character and write a short story from their perspective while visiting the park.</p>
+          </div>
+        </section>
+
+        <section id="rideVideos" class="card hidden">
+          <h3>Disneyland Ride POV Videos (Orange County, CA)</h3>
+
+          <h4>Incredicoaster — Disney California Adventure</h4>
+          <iframe src="https://www.youtube.com/embed/9YebOglcf-o" title="Incredicoaster POV" allowfullscreen></iframe>
+
+          <h4>It's a Small World — Disneyland Park</h4>
+          <iframe src="https://www.youtube.com/embed/pHNMDooOivI" title="It's a Small World POV" allowfullscreen></iframe>
+
+          <h4>Pirates of the Caribbean — Disneyland Park</h4>
+          <iframe src="https://www.youtube.com/embed/SakgAjh6xc4" title="Pirates of the Caribbean POV" allowfullscreen></iframe>
+
+          <h4>Snow White’s Enchanted Wish — Disneyland Park</h4>
+          <iframe src="https://www.youtube.com/embed/MByAGNSK_V0" title="Snow White’s Enchanted Wish POV" allowfullscreen></iframe>
+
+          <h4>Matterhorn Bobsleds — Disneyland Park</h4>
+          <iframe src="https://www.youtube.com/embed/u_u3DfA2tMY" title="Matterhorn Bobsleds POV" allowfullscreen></iframe>
+        </section>
+
+        <section id="scavenger" class="card hidden">
+          <h3>Scavenger Hunt</h3>
+          <p>Check off items as you find them in the videos!</p>
+          <ul>
+            <li><input type="checkbox"> Castle turret</li>
+            <li><input type="checkbox"> Parade float</li>
+            <li><input type="checkbox"> Hidden Mickey</li>
+            <li><input type="checkbox"> Costumed character</li>
+          </ul>
+        </section>
+
+        <section id="aboutMsBabbit" class="card hidden">
+          <h3>About Ms. Babbit 👩‍🏫</h3>
+          <p>Hello and welcome! I am Ms. Babbit, and I am thrilled to share the magic of learning with you. My journey began at Royal Oaks, continued through Northview Middle School, and I proudly graduated from Duarte High School in 2005. Go Falcons!</p>
+          <p>I hold a Bachelor’s in Anthropology (with a History minor) from SNHU and a Master’s in Education from Pacific Oaks College. My studies ignited a lifelong love of history, cultures, and learning, which I bring into our classroom every day.</p>
+          <p>At school, I serve on the PBIS Team, our School Site Council, and I am the Duarte Unified Middle School Math Chair. I am passionate about creating a safe, engaging, and inspiring learning environment where curiosity thrives.</p>
+          <p>When I’m not grading tests or planning lessons, you might find me exploring Disneyland — especially riding the Haunted Mansion! This year, our classroom embraces a Disneyland Haunted Mansion theme, where imagination, creativity, and a little spooky fun are always welcome.</p>
+          <p>In Room 25, we encourage collaboration, critical thinking, problem-solving, and creativity. Students are free to explore, ask questions, and even get a little spooky while learning — ghosts are optional but fun! 🎃</p>
+          <p>I am looking forward to a ghoulishly great year full of adventures, learning, and laughter. Let’s make it a magical journey together!</p>
+        </section>
+
+        <section id="myWebsites" class="card hidden">
+          <h3>My Websites 🌐</h3>
+          <p>Explore some of my personal web projects:</p>
+          <ul>
+            <li><a href="https://pieter.tschopp.org/cats" target="_blank">Cats 🐱</a></li>
+            <li><a href="https://pieter.tschopp.org/dogs" target="_blank">Dogs 🐶</a></li>
+            <li><a href="https://pieter.tschopp.org/turtles" target="_blank">Turtles 🐢</a></li>
+            <li><a href="https://pieter.tschopp.org/cars" target="_blank">Cars 🚗</a></li>
+            <li><a href="https://pieter.tschopp.org/planes" target="_blank">Planes ✈️</a></li>
+          </ul>
+        </section>
+      </div>
+
+      <aside>
+        <div class="sticky">
+          <section class="card">
+            <h4>Quick Facts</h4>
+            <ul>
+              <li><strong>Location:</strong> Anaheim, Orange County, CA</li>
+              <li><strong>Parks:</strong> Disneyland & California Adventure</li>
+              <li><strong>Focus:</strong> Creativity, Design, Storytelling</li>
+            </ul>
+          </section>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      <p class="center">© 2025 Virtual Disney Field Trip — Owned by Pieter Tschopp</p>
+    </footer>
+  </div>
+
+  <script>
+    const sections = document.querySelectorAll("main section.card");
+    const buttons = document.querySelectorAll("[data-nav]");
+    buttons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.nav;
+        sections.forEach(sec => {
+          if (sec.id === target) {
+            sec.classList.remove("hidden");
+          } else {
+            sec.classList.add("hidden");
+          }
+        });
+      });
+    });
+    // Show home by default
+    document.getElementById("home").classList.remove("hidden");
+  </script>
+</body>
+</html>
