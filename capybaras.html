@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Capybaras</title>
+  
+  <meta name="description" content="A richly detailed and informative capybara website with real photos and comprehensive information." />
+  <style>
+    :root{
+      --bg: #0b0b0f;
+      --panel: #11131a;
+      --text: #e8e8ef;
+      --muted: #b6b6c8;
+      --accent: #7cc4a3;
+      --nav-bg: rgba(15,15,25,.35);
+      --nav-border: rgba(255,255,255,.08);
+    }
+    /* Light theme */
+    [data-theme="light"]{
+      --bg: #fafbff;
+      --panel: #ffffff;
+      --text: #12131a;
+      --muted: #4e5569;
+      --accent: #257a5a;
+      --nav-bg: rgba(255,255,255,.6);
+      --nav-border: rgba(16,24,40,.08);
+    }
+
+    html{height:100%; scroll-behavior:smooth}
+    body{min-height:100%;margin:0;background:linear-gradient(180deg,#0b0b0f,#12141c 30%,#0b0b0f);background:var(--bg);color:var(--text);font:16px/1.6 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif; transition: background-color .3s ease,color .3s ease}
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+
+    /* Floating fixed navbar */
+    .topnav{position:fixed;inset:0 0 auto 0;z-index:50;}
+    .topnav-inner{display:flex;align-items:center;justify-content:space-between;gap:12px; width:min(1100px,92%); margin:12px auto 0; padding:10px 14px; backdrop-filter: saturate(140%) blur(10px); background: var(--nav-bg); border:1px solid var(--nav-border); border-radius:16px; box-shadow: 0 10px 30px rgba(0,0,0,.25)}
+    .brand{font-weight:800; letter-spacing:.3px; display:flex; align-items:center; gap:10px}
+    .brand .logo{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:linear-gradient(135deg,#6dd3a8,#3aa47f);color:#fff}
+    .nav-links{display:flex;gap:6px;flex-wrap:wrap}
+    .nav-links a{padding:8px 10px;border-radius:999px}
+    .nav-links a:hover{background:rgba(255,255,255,.08)}
+    .theme-toggle{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid var(--nav-border);background:transparent;color:var(--text);cursor:pointer}
+
+    .wrap{width:min(1100px,92%);margin:auto}
+
+    header{position:relative;overflow:hidden;border-radius:20px;box-shadow:0 20px 40px #0007;margin:84px 0 28px}
+    header .hero-img{display:block;width:100%;height:50vh;max-height:600px;object-fit:cover;object-position:top center;filter:contrast(1.02) saturate(1.05)}
+    header .title{position:absolute;inset:auto 0 0 0;background:linear-gradient(0deg,#000c,#0000 70%);padding:28px}
+    h1{margin:0 0 6px 0;font-size:clamp(28px,4.2vw,44px)}
+
+    .grid{display:grid;gap:18px}
+    @media (min-width:900px){.grid.cols-3{grid-template-columns:repeat(3,1fr)}}
+
+    section{background:var(--panel);border:1px solid #20223133;border-radius:16px;padding:20px 18px;box-shadow:inset 0 1px 0 #ffffff08; transition: background-color .3s ease, border-color .3s ease}
+    h2{margin:0 0 12px 0;font-size:clamp(22px,3vw,28px)}
+    p{color:var(--muted)}
+
+    .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+    figure{margin:0;background:#0d0f17;border:1px solid #1e2030;border-radius:14px;overflow:hidden}
+    [data-theme="light"] figure{background:#f3f5fb;border-color:#e5e7f0}
+    figure img{display:block;width:100%;height:220px;object-fit:cover}
+    figcaption{padding:10px 12px;font-size:13px;color:#c7c7d9}
+    [data-theme="light"] figcaption{color:#5a6075}
+
+    .caps{display:block;opacity:.8}
+    footer{color:#c6c6db;opacity:.85;padding:28px 0 60px}
+    [data-theme="light"] footer{color:#4b5061}
+
+    .quiz{display:grid;gap:12px}
+    .quiz .q{padding:12px;border-radius:12px;border:1px solid #1e2030;background:#0d0f17}
+    [data-theme="light"] .quiz .q{background:#f5f7ff;border-color:#e2e6f2}
+    .quiz button{align-self:start;padding:10px 16px;border-radius:12px;border:1px solid #1e2030;background:linear-gradient(180deg, var(--accent), #3a8469);color:#fff;font-weight:700;cursor:pointer}
+    #quizResult{min-height:28px;font-weight:700;margin-top:4px}
+  </style>
+</head>
+<body>
+  <!-- Floating fixed nav -->
+  <div class="topnav" role="navigation" aria-label="Primary">
+    <div class="topnav-inner">
+      <div class="brand"><span class="logo" aria-hidden="true">🦫</span> <span>Capybaras</span></div>
+      <div class="nav-links">
+        <a href="#about">About</a>
+        <a href="#habitat">Habitat</a>
+        <a href="#conservation">Conservation</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#quiz">Quiz</a>
+      </div>
+      <button id="themeToggle" class="theme-toggle" aria-pressed="false" title="Toggle light/dark">🌙 <span>Theme</span></button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <img class="hero-img" src="https://upload.wikimedia.org/wikipedia/commons/8/85/Capybara_portrait.jpg" alt="Capybara portrait fully visible" />
+      <div class="title">
+        <h1>Capybaras — The Chill Giants</h1>
+        <p>The world’s largest rodents — gentle, social, and vital to wetland ecosystems.</p>
+      </div>
+    </header>
+
+    <div class="grid cols-3" style="margin-bottom:18px">
+      <section id="about">
+        <h2>About</h2>
+        <p>Capybaras (<em>Hydrochoerus hydrochaeris</em>) are fascinating animals native to South America, and they are the largest rodents in the world. Their peaceful nature and strong social bonds make them stand out in the animal kingdom. They are semi-aquatic, spending much of their lives near water sources, and their webbed feet and dense fur make them excellent swimmers. Their ability to adapt to both wild and human-populated environments has allowed them to coexist with people in urban areas. They can often be seen lounging near rivers or ponds, peacefully sharing their space with other animals like birds, turtles, and even crocodiles.</p>
+        <p>Capybaras communicate using a series of vocalizations including barks, whistles, grunts, and purrs. Each sound conveys a specific message to their group members, whether it’s to alert of danger or express contentment. They also engage in mutual grooming to strengthen social ties. Their calm and friendly behavior has earned them a reputation as some of the most relaxed and tolerant creatures in the animal world, making them a favorite subject of wildlife photographers and nature enthusiasts.</p>
+      </section>
+      <section id="habitat">
+        <h2>Habitat & Diet</h2>
+        <p>Capybaras live primarily in tropical rainforests, flooded grasslands, and riverbanks throughout Central and South America. Their habitats provide the perfect balance of water and vegetation. They rely on water for cooling off and escaping predators, and vegetation for food and shelter. They are most active during dawn and dusk, grazing together in open fields or resting in the shade during the heat of the day. When threatened, they can dive into the water and stay submerged for several minutes, surfacing only when it’s safe.</p>
+        <p>Their diet is entirely plant-based and includes a variety of grasses, aquatic plants, and fruits. Capybaras are selective feeders, preferring soft, nutrient-rich grasses. During dry seasons, they adjust their diet to include more aquatic vegetation. Their digestive system is adapted to handle large amounts of fiber, and they practice coprophagy—re-ingesting soft feces to obtain essential nutrients and maintain a healthy gut. This process ensures that no nutrient goes to waste and helps sustain them in environments where food sources fluctuate seasonally.</p>
+      </section>
+      <section id="conservation">
+        <h2>Conservation</h2>
+        <p>Although capybaras are currently classified as “Least Concern,” their survival depends on the health of wetland ecosystems. These ecosystems face continuous threats from deforestation, agricultural expansion, and climate change. Human development often fragments their habitats, forcing capybaras into closer contact with people and leading to conflicts, especially in farming regions where they may graze on crops. In some areas, they are also hunted for meat and hide, though sustainable management programs have been introduced to prevent overexploitation.</p>
+        <p>Conservation efforts are focused on preserving natural wetlands and promoting coexistence between humans and wildlife. By restoring rivers and floodplains, many countries have seen the return of stable capybara populations. Ecotourism centered around observing these gentle creatures has also provided economic incentives for local communities to protect them. Protecting capybaras also safeguards a wide range of species that depend on the same habitats, from amphibians and reptiles to birds and fish. Their presence is a strong indicator of healthy, functioning wetlands.</p>
+      </section>
+    </div>
+
+    <section id="gallery">
+      <h2>Photo Gallery</h2>
+      <div class="gallery">
+        <figure>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/2/24/Capybara_%28Hydrochoerus_hydrochaeris%29_swimming_%2828874597390%29.jpg" alt="Capybara swimming" />
+          <figcaption><span class="caps">Swimming capybara — Gracefully gliding across the surface of a river.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Capybaras_%28Hydrochoerus_hydrochaeris%29_couple_swimming_%28male_right%29_%2828530374913%29.jpg" alt="Two capybaras swimming" />
+          <figcaption><span class="caps">Couple swimming — A bonded pair enjoying a calm afternoon swim.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/3/32/Capybara_%28Hydrochoerus_hydrochaeris%29_alpha_male.JPG" alt="Alpha male capybara grazing" />
+          <figcaption><span class="caps">Alpha male — A dominant male grazing in lush grasslands.</span></figcaption>
+        </figure>
+        <figure>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Baby_Capybara.jpg" alt="Baby capybara resting" />
+          <figcaption><span class="caps">Baby capybara — A young capybara resting near the water’s edge.</span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <h2>Quick Quiz</h2>
+      <form class="quiz" onsubmit="return false" aria-describedby="quizNote">
+        <div id="quizNote" class="caps" style="opacity:.8;margin-bottom:6px">Pick the best answer</div>
+        <div class="q">
+          <p><strong>1) What continent are capybaras native to?</strong></p>
+          <label><input type="radio" name="q1" value="a"> Africa</label><br>
+          <label><input type="radio" name="q1" value="b"> South America</label><br>
+          <label><input type="radio" name="q1" value="c"> Australia</label>
+        </div>
+        <div class="q">
+          <p><strong>2) What feature helps them see while mostly submerged?</strong></p>
+          <label><input type="radio" name="q2" value="a"> Side-placed eyes</label><br>
+          <label><input type="radio" name="q2" value="b"> High-set eyes, ears, and nostrils</label><br>
+          <label><input type="radio" name="q2" value="c"> Transparent eyelids</label>
+        </div>
+        <div class="q">
+          <p><strong>3) What’s their global conservation status?</strong></p>
+          <label><input type="radio" name="q3" value="a"> Endangered</label><br>
+          <label><input type="radio" name="q3" value="b"> Least Concern</label><br>
+          <label><input type="radio" name="q3" value="c"> Data Deficient</label>
+        </div>
+        <button id="checkQuiz">Check answers</button>
+        <div id="quizResult" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <footer>
+      <div>Photos used under Creative Commons licenses. This website was created to educate about capybaras and their importance to ecosystems.</div>
+      <div style="margin-top:6px">©Pieter Tschopp · Built for learning</div>
+    </footer>
+  </div>
+
+  <script>
+    // Theme: persist + toggle
+    (function(){
+      const root = document.documentElement;
+      const btn = document.getElementById('themeToggle');
+      const stored = localStorage.getItem('capy-theme');
+      if(stored){ root.setAttribute('data-theme', stored); if(btn) btn.setAttribute('aria-pressed', String(stored==='light')); }
+      if(btn){
+        btn.addEventListener('click', ()=>{
+          const current = root.getAttribute('data-theme') || 'dark';
+          const next = current === 'light' ? 'dark' : 'light';
+          root.setAttribute('data-theme', next);
+          localStorage.setItem('capy-theme', next);
+          btn.setAttribute('aria-pressed', String(next==='light'));
+          btn.textContent = next==='light' ? '☀️ Theme' : '🌙 Theme';
+        });
+      }
+    })();
+
+    // Quiz logic
+    const quizAnswers = { q1:'b', q2:'b', q3:'b' };
+    const checkBtn = document.getElementById('checkQuiz');
+    if (checkBtn){
+      checkBtn.addEventListener('click', () => {
+        let score = 0; let total = 3; let missing = [];
+        for (const [q, a] of Object.entries(quizAnswers)){
+          const chosen = document.querySelector(`input[name="${q}"]:checked`);
+          if (!chosen){ missing.push(q); continue; }
+          if (chosen.value === a) score++;
+        }
+        const out = document.getElementById('quizResult');
+        if (missing.length){
+          out.textContent = 'Answer all questions to see your score.';
+          out.style.color = '#9fd2ff';
+          return;
+        }
+        out.textContent = score === total ? 'Perfect! You are capy-certified.' : `You scored ${score}/${total}. Try again!`;
+        out.style.color = score === total ? '#7cc4a3' : '#9fd2ff';
+      });
+    }
+  </script>
+</body>
+</html>
