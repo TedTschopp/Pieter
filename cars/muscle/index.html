@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+        
+    <meta charset="UTF-8">
+        
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Muscle Cars</title>
+        
+    <link rel="icon"
+        href="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Car_icon.svg/1200px-Car_icon.svg.png">
+        <style>
+        :root {
+            --primary: #ff4b2b;
+            --secondary: #111;
+            --text-light: #f0f0f0;
+            --bg-light: #fff;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--secondary);
+            color: var(--text-light);
+            scroll-behavior: smooth;
+            transition: background 0.5s, color 0.5s;
+        }
+
+        body.light-mode {
+            background: var(--bg-light);
+            color: #111;
+        }
+
+        header {
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 3rem;
+            text-shadow: 2px 2px 5px black;
+        }
+
+        nav {
+            background: #222;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        .toggle-btn {
+            cursor: pointer;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .toggle-btn:hover {
+            background: #ff6a4a;
+        }
+
+        section {
+            padding: 3rem 5%;
+            max-width: 1200px;
+            margin: auto;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h2 {
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
+            padding-bottom: 0.5rem;
+        }
+
+        .muscle-car {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .car-card {
+            background: #222;
+            border-radius: 10px;
+            overflow: hidden;
+            flex: 1 1 300px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        body.light-mode .car-card {
+            background: #f8f8f8;
+        }
+
+        .car-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--primary);
+        }
+
+        .car-card img {
+            width: 100%;
+            display: block;
+        }
+
+        .car-card h3 {
+            margin: 1rem;
+        }
+
+        .car-card p {
+            margin: 0 1rem 1rem 1rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background: #222;
+            border-top: 2px solid var(--primary);
+        }
+
+        body.light-mode footer {
+            background: #f0f0f0;
+            border-top: 2px solid var(--primary);
+        }
+
+        footer p {
+            margin: 0;
+        }
+
+        a.home-link {
+            color: var(--text-light);
+            text-decoration: underline;
+        }
+
+        body.light-mode a.home-link {
+            color: #111;
+        }
+    </style>
+</head>
+
+<body>
+        <header>
+                <h1>Muscle Cars</h1>
+            </header>
+
+        <nav>
+                <a href="#home">Home</a>
+                <a href="#history">History</a>
+                <a href="#models">Famous Models</a>
+                <a href="#gallery">Gallery</a>
+                <button class="toggle-btn" id="toggleMode">Light Mode</button>
+            </nav>
+
+        <section id="home">
+                <h2>Home</h2>
+                <p>Welcome to the ultimate muscle car hub! Explore classic American muscle cars and learn about their
+            history and iconic models.</p>
+                <p>Check out more cars on our <a href="https://pieter.tschopp.org/cars" target="_blank"
+                class="home-link">main car page</a>.</p>
+            </section>
+
+        <section id="history">
+                <h2>History of Muscle Cars</h2>
+                <p>Muscle cars are high-performance automobiles, typically American, built for straight-line speed and
+            power. They rose to prominence in the 1960s and 1970s, becoming iconic symbols of American automotive
+            culture.</p>
+                <p>The classic muscle car era produced legends like the Ford Mustang, Chevrolet Camaro, and Dodge
+            Charger. These cars were known for their powerful V8 engines, aggressive styling, and affordable price
+            compared to European sports cars.</p>
+            </section>
+
+        <section id="models">
+                <h2>Famous Muscle Car Models</h2>
+                <div class="muscle-car">
+                        <div class="car-card">
+                                <img src="Camaro'69.jpeg" alt="1969 Chevrolet Camaro">
+                                <h3>1969 Chevrolet Camaro</h3>
+                                <p>The Camaro SS combined sleek design with raw power, making it a legend on and off the
+                    track.</p>
+                            </div>
+                        <div class="car-card">
+                                <img src="Doge'70.jpeg" alt="1970 Dodge Charger">
+                                <h3>1970 Dodge Charger</h3>
+                                <p>With its distinctive grille and powerful V8 engine, the Charger became an icon of
+                    muscle car culture.</p>
+                            </div>
+                        <div class="car-card">
+                                <img src="ford'65.jpeg" alt="1965 Ford Mustang">
+                                <h3>1965 Ford Mustang</h3>
+                                <p>The Mustang started the pony car craze, blending style, performance, and
+                    affordability.</p>
+                            </div>
+                    </div>
+            </section>
+
+        <section id="gallery">
+                <h2>Gallery</h2>
+                <div class="muscle-car">
+                        <div class="car-card">
+                                <img src="Pontiac'66.jpeg" alt="1966 Pontiac GTO">
+                                <h3>1966 Pontiac GTO</h3>
+                            </div>
+                        <div class="car-card">
+                                <img src="chevy'69.jpeg" alt="1969 Corvette Stingray">
+                                <h3>1969 Corvette Stingray</h3>
+                            </div>
+                    </div>
+            </section>
+
+        <footer>
+                <p>© 2025 Muscle Cars Fan Club</p>
+            </footer>
+
+        
+    <script>
+        // Light/Dark toggle
+        const toggleBtn = document.getElementById('toggleMode');
+        toggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            toggleBtn.textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
+        });
+
+        // Scroll reveal effect
+        const sections = document.querySelectorAll('section');
+        const reveal = () => {
+            sections.forEach(section => {
+                const top = section.getBoundingClientRect().top;
+                const screenHeight = window.innerHeight;
+                if (top < screenHeight - 100) {
+                    section.classList.add('visible');
+                }
+            });
+        }
+        window.addEventListener('scroll', reveal);
+        window.addEventListener('load', reveal);
+    </script>
+</body>
+
+</html>
