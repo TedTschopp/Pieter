@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+      
+    <meta charset="utf-8" />
+      
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>Sports Cars — Ultimate Dashboard</title>
+      
+    <link rel="icon"
+        href="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Car_icon.svg/1200px-Car_icon.svg.png">
+      <style>
+        :root {
+            --primary: #ff4b2b;
+            --secondary: #111;
+            --text-light: #f0f0f0;
+            --bg-light: #fff;
+            --card-bg: #222;
+            --card-bg-light: #f8f8f8;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--secondary);
+            color: var(--text-light);
+            scroll-behavior: smooth;
+            transition: background .45s, color .45s;
+        }
+
+        body.light-mode {
+            background: var(--bg-light);
+            color: #111;
+        }
+
+        header {
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.6rem;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, .6);
+        }
+
+        nav {
+            background: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            padding: .9rem 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 40;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 700;
+            transition: .2s
+        }
+
+        nav a:hover {
+            color: var(--primary)
+        }
+
+        .nav-right {
+            position: fixed;
+            right: 14px;
+            top: 12px;
+            display: flex;
+            gap: .5rem;
+            align-items: center
+        }
+
+        .toggle-btn,
+        .home-btn {
+            cursor: pointer;
+            border: none;
+            padding: .5rem .9rem;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            transition: transform .15s, box-shadow .15s;
+        }
+
+        .toggle-btn:hover,
+        .home-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 12px rgba(255, 75, 43, .25)
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 5%
+        }
+
+        section {
+            padding: 2rem 0;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity .8s, transform .8s
+        }
+
+        section.visible {
+            opacity: 1;
+            transform: none
+        }
+
+        h2 {
+            display: inline-block;
+            padding-bottom: .4rem;
+            border-bottom: 3px solid var(--primary)
+        }
+
+        /* controls */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            align-items: center;
+            margin: .8rem 0
+        }
+
+        .search {
+            flex: 1 1 320px;
+            padding: .6rem .9rem;
+            border-radius: 8px;
+            border: 0;
+            font-size: 1rem;
+            background: var(--card-bg);
+            color: var(--text-light);
+        }
+
+        body.light-mode .search {
+            background: #eee;
+            color: #111
+        }
+
+        .sorts {
+            display: flex;
+            gap: .5rem
+        }
+
+        .sort-btn {
+            background: var(--card-bg);
+            color: var(--text-light);
+            border: 0;
+            padding: .5rem .75rem;
+            border-radius: 6px;
+            cursor: pointer
+        }
+
+        .sort-btn:hover {
+            box-shadow: 0 0 10px rgba(0, 0, 0, .3);
+            transform: translateY(-2px)
+        }
+
+        /* grid */
+        .car-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.25rem;
+        }
+
+        .car-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1rem;
+            transition: transform .25s, box-shadow .25s;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        body.light-mode .car-card {
+            background: var(--card-bg-light)
+        }
+
+        .car-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .35)
+        }
+
+        .car-card h3 {
+            margin: .15rem 0 .6rem 0;
+            color: var(--primary);
+            font-size: 1.05rem
+        }
+
+        .spec {
+            font-size: .92rem;
+            margin: 0 0 .35rem 0;
+            color: inherit
+        }
+
+        .stat-bar-container {
+            background: #333;
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+            margin-bottom: .6rem
+        }
+
+        body.light-mode .stat-bar-container {
+            background: #e6e6e6
+        }
+
+        .stat-bar {
+            height: 12px;
+            background: var(--primary);
+            width: 0;
+            transition: width .75s ease-in-out
+        }
+
+        .meta {
+            display: flex;
+            gap: .6rem;
+            flex-wrap: wrap;
+            margin-top: .5rem;
+            font-size: .88rem;
+            color: #bbb
+        }
+
+        body.light-mode .meta {
+            color: #444
+        }
+
+        /* comparison */
+        .comparison {
+            margin-top: 2.2rem;
+            background: var(--card-bg);
+            padding: 1rem;
+            border-radius: 10px
+        }
+
+        body.light-mode .comparison {
+            background: #fff
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--text-light)
+        }
+
+        body.light-mode table {
+            color: #111
+        }
+
+        th,
+        td {
+            padding: .6rem;
+            border: 1px solid #444;
+            text-align: center
+        }
+
+        th {
+            background: #222;
+            color: var(--primary)
+        }
+
+        body.light-mode th {
+            background: #f2f2f2
+        }
+
+        /* detailed info */
+        .car-info {
+            max-width: 900px;
+            margin: 2.5rem auto;
+            padding: 1.25rem;
+            border-radius: 10px;
+            background: #121212;
+            color: var(--text-light)
+        }
+
+        body.light-mode .car-info {
+            background: #fafafa;
+            color: #111
+        }
+
+        .car-info p {
+            line-height: 1.6;
+            margin: 0.6rem 0
+        }
+
+        .car-info hr {
+            border: 0;
+            border-top: 1px solid #444;
+            margin: 1rem 0
+        }
+
+        body.light-mode .car-info hr {
+            border-top: 1px solid #ddd
+        }
+
+        footer {
+            padding: 1.6rem;
+            text-align: center;
+            background: #222;
+            border-top: 3px solid var(--primary);
+            margin-top: 2rem
+        }
+
+        body.light-mode footer {
+            background: #f0f0f0
+        }
+
+        /* responsive tweaks */
+        @media (max-width:520px) {
+            header h1 {
+                font-size: 1.6rem
+            }
+
+            nav {
+                gap: .8rem;
+                padding: .6rem
+            }
+
+            .nav-right {
+                display: none
+            }
+        }
+    </style>
+</head>
+
+<body>
+      <header>
+        <h1>Sports Cars — Ultimate Dashboard</h1>
+    </header>
+
+      <nav>
+            <a href="#home">Home</a>
+            <a href="#models">Models</a>
+            <a href="#compare">Compare</a>
+            <a href="#details">Detailed Info</a>
+
+            <div class="nav-right">
+                  <button class="home-btn" id="homeBtn">Home</button>
+                  <button class="toggle-btn" id="toggleMode">Light Mode</button>
+                </div>
+          </nav>
+
+      <main>
+            <section id="home" class="visible">
+                  <h2>Welcome</h2>
+                  <p style="margin-top:.75rem">Explore a curated selection of <strong>45 high-performance sports
+                    cars</strong>. Use the search and sort controls, hover to animate stat bars, and click cars to add
+                them to the comparison table (each car can be added only once).</p>
+                  <p>Primary site: <a href="https://pieter.tschopp.org/cars" target="_blank"
+                    style="color:var(--primary)">(pieter.tschopp.org/cars)</a></p>
+                </section>
+
+            <section id="models">
+                  <h2>Models</h2>
+
+                  <div class="controls" style="margin-top:1rem">
+                        <input id="searchBox" class="search" placeholder="Search cars (e.g. Ferrari, Porsche)..." />
+                        <div class="sorts">
+                              <button class="sort-btn" id="sortSpeed">Sort: Speed ▾</button>
+                              <button class="sort-btn" id="sortAcc">Sort: Acceleration ▾</button>
+                              <button class="sort-btn" id="sortHp">Sort: Horsepower ▾</button>
+                            </div>
+                      </div>
+
+                  <div class="car-grid" id="carGrid"></div>
+                </section>
+
+            <section id="compare">
+                  <h2>Compare</h2>
+                  <div class="comparison">
+                        <table id="comparisonTable">
+                              <thead>
+                                    <tr>
+                            <th>Car</th>
+                            <th>Top Speed (km/h)</th>
+                            <th>0–100 km/h (s)</th>
+                            <th>HP</th>
+                        </tr>
+                                  </thead>
+                              <tbody>
+                        <tr>
+                            <td colspan="4">Click a car card to add it to the comparison (no duplicates).</td>
+                        </tr>
+                    </tbody>
+                            </table>
+                      </div>
+                </section>
+
+            <section id="details" class="visible">
+                  <h2>Detailed Info</h2>
+                  <div class="car-info" id="carInfo">
+                        <!-- Detailed info paragraphs with <hr> for all 45 cars -->
+                        
+                <hr>
+                        <p><strong>Ferrari 812 Competizione:</strong> Italian masterpiece with a 6.5L V12 producing
+                    about 830 hp. 0–100 km/h in ~2.85s and a top speed around 340 km/h. Known for its high-revving
+                    engine, razor-sharp chassis, and aggressive aerodynamics.</p>
+
+                        
+                <hr>
+                        <p><strong>Lamborghini Aventador:</strong> Naturally aspirated V12 delivering roughly 770 hp,
+                    0–100 km/h in ~2.9s, top speed ~350 km/h. Notable for its striking design and scissor doors—an
+                    emblem of modern Italian supercars.</p>
+
+                        
+                <hr>
+                        <p><strong>Porsche 911 GT3:</strong> Track-focused flat-six making ~500 hp, 0–100 km/h in about
+                    3.4s, top speed ~318 km/h. Built for precision driving with a suspension and aero tuned for the
+                    racetrack.</p>
+
+                        
+                <hr>
+                        <p><strong>McLaren 720S:</strong> Carbon-fiber chassis and twin-turbo V8 producing ~720 hp.
+                    0–100 km/h in ~2.9s and top speed around 341 km/h. Praised for razor-sharp handling and lightweight
+                    engineering.</p>
+
+                        
+                <hr>
+                        <p><strong>Bugatti Chiron:</strong> Quad-turbo W16 producing ~1500 hp with a top speed beyond
+                    420 km/h and 0–100 km/h in ~2.4s. A hyper-luxury engineering marvel combining insane speed with
+                    opulent craftsmanship.</p>
+
+                        
+                <hr>
+                        <p><strong>Aston Martin DBS:</strong> Grand tourer with ~715 hp, 0–100 km/h ~3.6s, top speed
+                    ~340 km/h. Balances elegant British styling with high-performance capability and a luxurious
+                    interior.</p>
+
+                        
+                <hr>
+                        <p><strong>Chevrolet Corvette C8:</strong> Mid-engine V8 offering ~495 hp, 0–100 km/h in ~2.9s
+                    and top speed ~312 km/h. Delivers supercar performance at a more attainable price with strong
+                    handling dynamics.</p>
+
+                        
+                <hr>
+                        <p><strong>Ford GT:</strong> Race-derived aerodynamics and ~660 hp; 0–100 km/h in ~3.0s and top
+                    speed around 348 km/h. Designed with motorsport tech and extreme aero in mind.</p>
+
+                        
+                <hr>
+                        <p><strong>Nissan GT-R:</strong> All-wheel-drive performance icon with ~565 hp, 0–100 km/h in
+                    ~2.9s, top speed ~315 km/h. Renowned for its traction, electronics, and consistent lap times.</p>
+
+                        
+                <hr>
+                        <p><strong>BMW M8:</strong> Luxury grand tourer with about 617 hp, 0–100 km/h ~3.2s, top speed
+                    ~305 km/h. Combines high-speed stability with plush interiors and tech features.</p>
+
+                        
+                <hr>
+                        <p><strong>Audi R8:</strong> Mid-engine V10-based supercar with roughly 562 hp, 0–100 km/h ~3.1s
+                    and top speed ~330 km/h. Quattro AWD and compact usability make it practical and fast.</p>
+
+                        
+                <hr>
+                        <p><strong>Mercedes-AMG GT:</strong> Twin-turbo V8 producing ~577 hp, 0–100 km/h around 3.6s,
+                    top speed ~318 km/h. A blend of luxury, GT comfort, and sporty handling.</p>
+
+                        
+                <hr>
+                        <p><strong>Jaguar F-Type SVR:</strong> Robust V8 with ~575 hp, 0–100 km/h ~3.5s and top speed
+                    ~322 km/h. Offers an evocative exhaust note and British grand-tourer poise.</p>
+
+                        
+                <hr>
+                        <p><strong>Lexus LC500:</strong> Naturally aspirated V8 with ~471 hp, 0–100 km/h ~4.7s, top
+                    speed ~270 km/h. Focused on luxury, refinement, and long-distance comfort with style.</p>
+
+                        
+                <hr>
+                        <p><strong>Maserati MC20:</strong> Mid-engine Italian supercar with ~621 hp, 0–100 km/h ~2.9s
+                    and top speed ~325 km/h. Known for elegant design and Maserati's sporty character.</p>
+
+                        
+                <hr>
+                        <p><strong>Pagani Huayra:</strong> Hand-built hypercar with incredible attention to detail, ~720
+                    hp, 0–100 km/h ~2.8s and top speed ~383 km/h. Exquisite materials and bespoke engineering.</p>
+
+                        
+                <hr>
+                        <p><strong>Koenigsegg Jesko:</strong> Hypercar designed for extreme speed; ~1600 hp (depending
+                    on tune), 0–100 km/h ~2.5s, target top speeds above 480 km/h. Advanced aerodynamics and a
+                    lightweight structure.</p>
+
+                        
+                <hr>
+                        <p><strong>Lotus Evija:</strong> All-electric hypercar with enormous power (~2000 hp in some
+                    figures), instant torque, 0–100 km/h ~3.0s, top speed targeted around 320 km/h. Focused on
+                    lightweight performance and electric innovation.</p>
+
+                        
+                <hr>
+                        <p><strong>Alfa Romeo 4C:</strong> Lightweight Italian coupe with ~237 hp, 0–100 km/h ~4.1s, top
+                    speed ~258 km/h. Emphasizes driving engagement via minimal weight and sharp steering.</p>
+
+                        
+                <hr>
+                        <p><strong>Cadillac CT5-V Blackwing:</strong> High-performance American sedan with ~668 hp,
+                    0–100 km/h ~3.4s and top speed ~322 km/h. Combines luxury appointments with track-capable
+                    engineering.</p>
+
+                        
+                <hr>
+                        <p><strong>Dodge Viper ACR:</strong> Legendary V10-powered track beast with ~645 hp, 0–100 km/h
+                    ~3.3s, top speed ~330 km/h. Built for raw performance and track dominance.</p>
+
+                        
+                <hr>
+                        <p><strong>Honda NSX:</strong> Hybrid supercar with ~573 hp, 0–100 km/h ~3.1s, top speed ~307
+                    km/h. Japanese precision with hybrid-assist tech for balanced performance.</p>
+
+                        
+                <hr>
+                        <p><strong>Chevrolet Camaro ZL1:</strong> Muscle car with ~650 hp, 0–100 km/h ~3.5s and top
+                    speed ~318 km/h. Modern aero and chassis tech deliver surprisingly capable handling for a muscle
+                    car.</p>
+
+                        
+                <hr>
+                        <p><strong>Toyota Supra GR:</strong> Engineered with BMW collaboration; ~382 hp, 0–100 km/h
+                    ~4.0s and top speed ~250 km/h. Known for balanced handling, strong aftermarket, and sporty
+                    character.</p>
+
+                        
+                <hr>
+                        <p><strong>Lotus Emira:</strong> Lightweight dynamic sports car with ~400 hp, 0–100 km/h ~4.3s,
+                    top speed ~290 km/h. Emphasizes driver feel, agility, and a purist experience.</p>
+
+                        
+                <hr>
+                        <p><strong>Porsche Taycan Turbo S:</strong> High-performance electric with ~750 hp, 0–100 km/h
+                    ~2.8s and a top speed around 260 km/h. Instant torque, exceptional EV packaging, and track-capable
+                    dynamics.</p>
+
+                        
+                <hr>
+                        <p><strong>McLaren Elva:</strong> Open-top hypercar focused on lightweight speed; ~804 hp, 0–100
+                    km/h ~3.0s, top speed ~330 km/h. Exceptional aero and exclusivity define the Elva.</p>
+
+                        
+                <hr>
+                        <p><strong>Ferrari SF90 Stradale:</strong> Plug-in hybrid supercar with ~986 hp combined, 0–100
+                    km/h ~2.5s, top speed ~340 km/h. Combines electric torque with Ferrari combustion performance.</p>
+
+                        
+                <hr>
+                        <p><strong>Lamborghini Huracan EVO:</strong> V10 supercar delivering ~631 hp, 0–100 km/h ~2.9s,
+                    top speed ~325 km/h. Sharp handling and dramatic Italian styling.</p>
+
+                        
+                <hr>
+                        <p><strong>Rimac Nevera:</strong> Electric hypercar with staggering ~1914 hp, 0–100 km/h ~1.85s
+                    and top speed ~412 km/h. Cutting-edge battery, software, and EV powertrain tech.</p>
+
+                        
+                <hr>
+                        <p><strong>Tesla Roadster (concept specs):</strong> Promised extreme EV performance — target
+                    0–100 km/h in under 2s and very high top speeds; emphasizes electric torque and acceleration.</p>
+
+                        
+                <hr>
+                        <p><strong>Ferrari F8 Tributo:</strong> V8 mid-engine Ferrari with ~710 hp, 0–100 km/h ~2.9s,
+                    top speed ~340 km/h. A balance of everyday usability and track-capable performance.</p>
+
+                        
+                <hr>
+                        <p><strong>Lamborghini Urus:</strong> High-performance SUV carrying Lamborghini DNA, ~650 hp,
+                    0–100 km/h ~3.6s, top speed ~305 km/h. Blends usability with super-SUV speed.</p>
+
+                        
+                <hr>
+                        <p><strong>McLaren P1:</strong> Hybrid hypercar and predecessor to modern McLaren hybrids; ~903
+                    hp combined, 0–100 km/h ~2.8s, top speed ~350 km/h. A benchmark hybrid hypercar.</p>
+
+                        
+                <hr>
+                        <p><strong>Bugatti Veyron:</strong> One of the first modern hypercars to surpass 400 km/h, ~1200
+                    hp in later versions, 0–100 km/h ~2.5s. A milestone in engineering and speed.</p>
+
+                        
+                <hr>
+                        <p><strong>Koenigsegg Gemera:</strong> Four-seat hypercar with hybrid power, ~1700 hp in some
+                    configs, 0–100 km/h ~1.9s, top speed ~400 km/h. Unique combination of practicality and extreme
+                    performance.</p>
+
+                        
+                <hr>
+                        <p><strong>Aston Martin Vantage:</strong> Sporting GT with ~503 hp, 0–100 km/h ~3.6s, top speed
+                    ~314 km/h. Stylish British design with sharp handling and GT comfort.</p>
+
+                        
+                <hr>
+                        <p><strong>Porsche 918 Spyder:</strong> Plug-in hybrid supercar with ~887 hp combined, 0–100
+                    km/h ~2.6s, top speed ~340 km/h. An influential hybrid hypercar blending tech and track speed.</p>
+
+                        
+                <hr>
+                        <p><strong>Lotus Exige:</strong> Lightweight, focused sports car with ~430 hp, 0–100 km/h ~3.8s,
+                    top speed ~290 km/h. Driver-focused, nimble, and track-oriented.</p>
+
+                        
+                <hr>
+                        <p><strong>Maserati Alfieri:</strong> Italian coupe concept/production variant with ~600 hp,
+                    0–100 km/h ~3.1s and top speed ~320 km/h. Luxury Italian flair meets sportiness.</p>
+
+                        
+                <hr>
+                        <p><strong>BMW i8:</strong> Hybrid sports coupe with futuristic design, ~369 hp combined, 0–100
+                    km/h ~4.4s and top speed ~250 km/h. Emphasizes efficiency with sporty manners.</p>
+
+                        
+                <hr>
+                        <p><strong>Audi RS7:</strong> High-performance luxury sedan with ~591 hp, 0–100 km/h ~3.5s and
+                    top speed ~305 km/h (optional higher). Quattro AWD ensures strong traction and stability.</p>
+
+                        
+                <hr>
+                        <p><strong>Jaguar XE SV Project 8:</strong> Limited-run performance sedan with ~592 hp, 0–100
+                    km/h ~3.3s, top speed ~322 km/h. Purpose-built with track-focused engineering.</p>
+
+                        
+                <hr>
+                        <p><strong>Ford Mustang Shelby GT500:</strong> Supercharged V8 muscle car with ~760 hp, 0–100
+                    km/h ~3.5s, top speed ~290 km/h. Raw American power with modern tech.</p>
+
+                        
+                <hr>
+                        <p><strong>Chevrolet Corvette Z06:</strong> High-performance mid-engine Corvette with ~670 hp,
+                    0–100 km/h ~2.95s, top speed ~312 km/h. Serious track capability in a (relatively) affordable
+                    package.</p>
+
+                      
+            </div>
+                </section>
+          </main>
+
+      <footer>
+            <p>© 2025 Sports Cars Showcase</p>
+          </footer>
+
+      
+    <script>
+        /* ----------------------------
+           Data + UI behavior
+        ---------------------------- */
+        const carData = [
+            { name: "Ferrari 812 Competizione", speed: 340, acc: 2.85, hp: 830 },
+            { name: "Lamborghini Aventador", speed: 350, acc: 2.9, hp: 770 },
+            { name: "Porsche 911 GT3", speed: 318, acc: 3.4, hp: 500 },
+            { name: "McLaren 720S", speed: 341, acc: 2.9, hp: 720 },
+            { name: "Bugatti Chiron", speed: 420, acc: 2.4, hp: 1500 },
+            { name: "Aston Martin DBS", speed: 340, acc: 3.6, hp: 715 },
+            { name: "Chevrolet Corvette C8", speed: 312, acc: 2.9, hp: 495 },
+            { name: "Ford GT", speed: 348, acc: 3.0, hp: 660 },
+            { name: "Nissan GT-R", speed: 315, acc: 2.9, hp: 565 },
+            { name: "BMW M8", speed: 305, acc: 3.2, hp: 617 },
+            { name: "Audi R8", speed: 330, acc: 3.1, hp: 562 },
+            { name: "Mercedes-AMG GT", speed: 318, acc: 3.6, hp: 577 },
+            { name: "Jaguar F-Type SVR", speed: 322, acc: 3.5, hp: 575 },
+            { name: "Lexus LC500", speed: 270, acc: 4.7, hp: 471 },
+            { name: "Maserati MC20", speed: 325, acc: 2.9, hp: 621 },
+            { name: "Pagani Huayra", speed: 383, acc: 2.8, hp: 720 },
+            { name: "Koenigsegg Jesko", speed: 482, acc: 2.5, hp: 1600 },
+            { name: "Lotus Evija", speed: 320, acc: 3.0, hp: 2000 },
+            { name: "Alfa Romeo 4C", speed: 258, acc: 4.1, hp: 237 },
+            { name: "Cadillac CT5-V Blackwing", speed: 322, acc: 3.4, hp: 668 },
+            { name: "Dodge Viper ACR", speed: 330, acc: 3.3, hp: 645 },
+            { name: "Honda NSX", speed: 307, acc: 3.1, hp: 573 },
+            { name: "Chevrolet Camaro ZL1", speed: 318, acc: 3.5, hp: 650 },
+            { name: "Toyota Supra GR", speed: 250, acc: 4.0, hp: 382 },
+            { name: "Lotus Emira", speed: 290, acc: 4.3, hp: 400 },
+            { name: "Porsche Taycan Turbo S", speed: 260, acc: 2.8, hp: 750 },
+            { name: "McLaren Elva", speed: 330, acc: 3.0, hp: 804 },
+            { name: "Ferrari SF90 Stradale", speed: 340, acc: 2.5, hp: 986 },
+            { name: "Lamborghini Huracan EVO", speed: 325, acc: 2.9, hp: 631 },
+            { name: "Rimac Nevera", speed: 412, acc: 1.85, hp: 1914 },
+            { name: "Tesla Roadster", speed: 400, acc: 1.9, hp: 2000 },
+            { name: "Ferrari F8 Tributo", speed: 340, acc: 2.9, hp: 710 },
+            { name: "Lamborghini Urus", speed: 305, acc: 3.6, hp: 650 },
+            { name: "McLaren P1", speed: 350, acc: 2.8, hp: 903 },
+            { name: "Bugatti Veyron", speed: 408, acc: 2.5, hp: 1200 },
+            { name: "Koenigsegg Gemera", speed: 400, acc: 1.9, hp: 1700 },
+            { name: "Aston Martin Vantage", speed: 314, acc: 3.6, hp: 503 },
+            { name: "Porsche 918 Spyder", speed: 340, acc: 2.6, hp: 887 },
+            { name: "Lotus Exige", speed: 290, acc: 3.8, hp: 430 },
+            { name: "Maserati Alfieri", speed: 320, acc: 3.1, hp: 600 },
+            { name: "BMW i8", speed: 250, acc: 4.4, hp: 369 },
+            { name: "Audi RS7", speed: 305, acc: 3.5, hp: 591 },
+            { name: "Jaguar XE SV Project 8", speed: 322, acc: 3.3, hp: 592 },
+            { name: "Ford Mustang Shelby GT500", speed: 290, acc: 3.5, hp: 760 },
+            { name: "Chevrolet Corvette Z06", speed: 312, acc: 2.95, hp: 670 }
+        ];
+
+        const carGrid = document.getElementById('carGrid');
+        const comparisonTableBody = document.querySelector('#comparisonTable tbody');
+        const addedCars = new Set();
+
+        function createCard(car) {
+            const card = document.createElement('div');
+            card.className = 'car-card';
+            card.innerHTML = `
+        <h3>${car.name}</h3>
+        <div class="spec">Top Speed: ${car.speed} km/h</div>
+        <div class="stat-bar-container"><div class="stat-bar" data-type="speed"></div></div>
+        <div class="spec">0–100 km/h: ${car.acc}s</div>
+        <div class="stat-bar-container"><div class="stat-bar" data-type="acc"></div></div>
+        <div class="spec">Horsepower: ${car.hp} hp</div>
+        <div class="stat-bar-container"><div class="stat-bar" data-type="hp"></div></div>
+        <div class="meta"><span style="opacity:.85">Click to add to compare</span></div>
+      `;
+            // hover animations
+            const bars = card.querySelectorAll('.stat-bar');
+            card.addEventListener('mouseenter', () => {
+                bars.forEach(bar => {
+                    const t = bar.getAttribute('data-type');
+                    if (t === 'speed') { bar.style.width = (car.speed / 482 * 100) + '%'; }
+                    if (t === 'acc') { bar.style.width = ((5 - car.acc) / 5 * 100) + '%'; }
+                    if (t === 'hp') { bar.style.width = (car.hp / 2000 * 100) + '%'; }
+                });
+            });
+            card.addEventListener('mouseleave', () => {
+                bars.forEach(bar => bar.style.width = '0');
+            });
+            // click-to-compare
+            card.addEventListener('click', () => {
+                if (addedCars.has(car.name)) return;
+                addedCars.add(car.name);
+                if (comparisonTableBody.children.length === 1 && comparisonTableBody.children[0].children.length === 1) {
+                    comparisonTableBody.innerHTML = '';
+                }
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${car.name}</td><td>${car.speed}</td><td>${car.acc}</td><td>${car.hp}</td>`;
+                comparisonTableBody.appendChild(row);
+            });
+            return card;
+        }
+
+        function renderGrid(list) {
+            carGrid.innerHTML = '';
+            list.forEach(car => carGrid.appendChild(createCard(car)));
+        }
+
+        // initial render
+        renderGrid(carData);
+
+        // search
+        const searchBox = document.getElementById('searchBox');
+        searchBox.addEventListener('input', () => {
+            const q = searchBox.value.trim().toLowerCase();
+            const filtered = carData.filter(c => c.name.toLowerCase().includes(q));
+            renderGrid(filtered);
+        });
+
+        // sorting
+        document.getElementById('sortSpeed').addEventListener('click', () => renderGrid([...carData].sort((a, b) => b.speed - a.speed)));
+        document.getElementById('sortAcc').addEventListener('click', () => renderGrid([...carData].sort((a, b) => a.acc - b.acc)));
+        document.getElementById('sortHp').addEventListener('click', () => renderGrid([...carData].sort((a, b) => b.hp - a.hp)));
+
+        // light/dark
+        const toggleMode = document.getElementById('toggleMode');
+        toggleMode.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            toggleMode.textContent = document.body.classList.contains('light-mode') ? 'Dark Mode' : 'Light Mode';
+        });
+
+        // home button goes to pieter.tschopp.org/cars
+        document.getElementById('homeBtn').addEventListener('click', () => {
+            window.location.href = "https://Pieter.tschopp.org/cars";
+        });
+
+        // reveal on scroll
+        const sections = document.querySelectorAll('section');
+        const reveal = () => {
+            sections.forEach(s => {
+                const top = s.getBoundingClientRect().top;
+                if (top < window.innerHeight - 100) s.classList.add('visible');
+            });
+        };
+        window.addEventListener('scroll', reveal);
+        window.addEventListener('load', reveal);
+        // initial reveal call in case sections are already visible
+        reveal();
+    </script>
+</body>
+
+</html>
