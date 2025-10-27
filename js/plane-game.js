@@ -31,8 +31,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Plane definitions
   const planesData = {
-    jet: { src: "plane.png", speed: 1800, scale: 1.7 }, // Jet airliner
-    fighter: { src: "fighter.png", speed: 3218, scale: 1.7 }, // Fighter jet
+    jet: { src: "/img/plane.png", speed: 1800, scale: 1.7 }, // Jet airliner
+    fighter: { src: "/img/fighter.png", speed: 3218, scale: 1.7 }, // Fighter jet
   };
 
   let planeImg = new Image();
