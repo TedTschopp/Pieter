@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Sim (Beta 0.002.22)</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: monospace;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(#6ec6ff, #e3f2fd);
+        }
+
+        #infoBox {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 10;
+            border-radius: 10px;
+            padding: 8px 12px;
+            background-color: rgba(0, 0, 0, 0.6);
+            color: grey;
+            max-width: 250px;
+            transition: opacity 0.3s ease;
+        }
+
+        #infoBox.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #hideBtn {
+            float: right;
+            font-size: 12px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: #ddd;
+            padding: 4px 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        #hideBtn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        #showBtn {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 10;
+            border-radius: 6px;
+            border: none;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.5);
+            color: #ccc;
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        #showBtn.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #optionsBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            z-index: 10;
+        }
+
+        #optionsBtn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        #optionsPanel {
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            width: 250px;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            display: none;
+            z-index: 10;
+        }
+
+        #optionsPanel label,
+        #optionsPanel span {
+            display: block;
+            margin: 6px 0;
+            -webkit-text-stroke: 0.3px black;
+        }
+
+        #startupPopup {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            flex-direction: column;
+            font-family: monospace;
+            transition: opacity 0.5s ease;
+            pointer-events: all;
+        }
+
+        #startupPopup.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #crashPopup {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 25;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            flex-direction: column;
+            font-family: monospace;
+            transition: opacity 0.5s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #crashPopup.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Info Box -->
+    <div id="infoBox">
+        <button id="hideBtn">Hide ✕</button>
+        <h3>Welcome to Flight Simulator!</h3>
+        <p>(Beta 0.002.22)</p>
+    </div>
+    <button id="showBtn">Show Info</button>
+
+    <!-- Options -->
+    <button id="optionsBtn">Options & Controls</button>
+    <div id="optionsPanel">
+        <label><input type="checkbox" id="autopilot"> Enable Autopilot</label>
+        <label><input type="checkbox" id="unlimitedFuel"> Unlimited Fuel (F)</label>
+        <label><input type="checkbox" id="noCrash"> No Crashes</label>
+        <label>Autopilot Target Altitude: <span id="altValue">1200</span> ft</label>
+        <input type="range" id="altSlider" min="100" max="5000" value="1200" step="50">
+        <label>Plane:
+            <select id="planeSelect">
+                <option value="prop">Jet Plane</option>
+                <option value="fighter">Military Jet</option>
+            </select>
+        </label>
+    </div>
+
+    <div id="startupPopup">
+        <h3>Welcome to Flight Simulator!</h3>
+        <label>Select Aircraft:</label>
+        <select id="startupPlaneSelect">
+            <option value="jet">Jet Airliner</option>
+            <option value="fighter">Military Jet</option>
+        </select>
+        <br>
+        <label>Starting Altitude (ft):</label>
+        <input type="number" id="startupAlt" value="1200" min="100" max="5000">
+        <br>
+        <button id="startFlightBtn">Start Flying</button>
+    </div>
+
+    <!-- Crash Popup -->
+    <div id="crashPopup">
+        <h2>You Crashed!</h2>
+        <button id="resetFlight">Reset Flight</button>
+        <button id="spectateMode">Continue (Spectate Mode)</button>
+    </div>
+
+    <!-- Canvas -->
+    <canvas id="gameCanvas"></canvas>
+
+    <script src="/js/plane-game.js"></script>
+</body>
+
+</html>
