@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Browser CPU/GPU Load Tester</title>
+<style>
+body {
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  background: #f4f4f4;
+  text-align: center;
+}
+.titlediv {
+  background-color: rgb(209, 209, 209);
+  border-radius: 15px;
+  width: 60%;
+  margin: 20px auto;
+  padding: 15px;
+}
+fieldset {
+  width: 60%;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 10px;
+}
+button {
+  background-color: rgba(211, 8, 8, 0.77);
+  border-radius: 5px;
+  padding: 5px 10px;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 5px solid #ccc;
+  border-top-color: #0078d7;
+  border-radius: 50%;
+  margin-left: 15px;
+  display: inline-block;
+  vertical-align: middle;
+  animation: spin 1s linear infinite;
+}
+.spinner.hidden { display: none; }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+canvas {
+  display: none;
+}
+input[type=range] { width: 80%; margin-top: 10px; }
+#cpuFPS { font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="titlediv">
+<h1>GPU/CPU Load Tester</h1>
+<p>This might crash your computer if it’s weak 😅</p>
+</div>
+
+<!-- CPU Tester -->
+<fieldset>
+<legend>CPU Tester</legend>
+<button id="toggleBtn">Start Test</button>
+<div id="cpuSpinner" class="spinner hidden"></div>
+<br><br>
+<label for="cpuSlider">CPU Intensity:</label>
+<input type="range" id="cpuSlider" min="1" max="50" value="20" step="1">
+<span id="cpuVal">20</span>
+<p>CPU FPS: <span id="cpuFPS">0</span></p>
+</fieldset>
+
+<!-- GPU Tester -->
+<fieldset>
+<legend>GPU Tester</legend>
+<h3>WARNING: Most computers cannot handle GPU stress test; proceed with caution</h3>
+<button onclick="toggleBtngpu()">Start GPU Test</button>
+<div id="gpuSpinner" class="spinner hidden"></div>
+<canvas id="gpuCanvas" width="800" height="600"></canvas>
+</fieldset>
+
+<script>
+// ----------------------------
+// CPU Stress Test (STRONG + FPS)
+// ----------------------------
+const cpuSpinner = document.getElementById('cpuSpinner');
+const cpuBtn = document.getElementById('toggleBtn');
+const cpuSlider = document.getElementById('cpuSlider');
+const cpuVal = document.getElementById('cpuVal');
+const cpuFPS = document.getElementById('cpuFPS');
+let cpuRunning = false;
+let cpuIntensity = Number(cpuSlider.value);
+
+cpuSlider.oninput = () => {
+  cpuIntensity = Number(cpuSlider.value);
+  cpuVal.textContent = cpuIntensity;
+};
+
+// FPS tracking
+let lastTime = performance.now();
+let frames = 0;
+
+function cpuStressTest() {
+  if (!cpuRunning) return;
+  const start = performance.now();
+
+  // Strong multi-layer CPU stress
+  for (let n = 0; n < cpuIntensity; n++) {
+    let arr = new Array(50000).fill(0);
+    for (let i = 0; i < arr.length; i++) {
+      arr[i] = Math.sqrt(i) * Math.sin(i) * Math.tan(i % 1000) + Math.random();
+    }
+  }
+
+  // FPS counter
+  frames++;
+  const now = performance.now();
+  if (now - lastTime >= 1000) {
+    cpuFPS.textContent = frames;
+    frames = 0;
+    lastTime = now;
+  }
+
+  requestAnimationFrame(cpuStressTest);
+}
+
+cpuBtn.onclick = () => {
+  cpuRunning = !cpuRunning;
+  if (cpuRunning) {
+    cpuBtn.textContent = "Stop Test";
+    cpuSpinner.classList.remove('hidden');
+    cpuStressTest();
+  } else {
+    cpuBtn.textContent = "Start Test";
+    cpuSpinner.classList.add('hidden');
+    cpuFPS.textContent = 0;
+  }
+};
+
+// ----------------------------
+// GPU Stress Test using WebGL
+// ----------------------------
+const canvas = document.getElementById("gpuCanvas");
+const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+const gpuSpinner = document.getElementById("gpuSpinner");
+let gpuRunning = false;
+
+if (!gl) alert("WebGL not supported in your browser!");
+
+const vertices = [
+  -0.05,-0.05,-0.05,  0.05,-0.05,-0.05,  0.05,0.05,-0.05,  -0.05,0.05,-0.05,
+  -0.05,-0.05,0.05,   0.05,-0.05,0.05,   0.05,0.05,0.05,   -0.05,0.05,0.05
+];
+
+const cubePositions = [];
+for (let i = 0; i < 2000000; i++) {
+  cubePositions.push([Math.random()*2-1, Math.random()*2-1, Math.random()*-2]);
+}
+
+const vertexBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+const vertCode = `
+  attribute vec3 coordinates;
+  uniform vec3 offset;
+  uniform float angle;
+  void main(void) {
+    float c = cos(angle);
+    float s = sin(angle);
+    vec3 pos = coordinates;
+    gl_Position = vec4(
+      c*pos.x - s*pos.z + offset.x,
+      pos.y + offset.y,
+      s*pos.x + c*pos.z + offset.z,
+      1.0
+    );
+  }`;
+
+const fragCode = `
+  void main(void) {
+    gl_FragColor = vec4(0.2, 0.8, 0.5, 1.0);
+  }`;
+
+function createShader(type, source){
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    console.error(gl.getShaderInfoLog(shader));
+  }
+  return shader;
+}
+
+const vertShader = createShader(gl.VERTEX_SHADER, vertCode);
+const fragShader = createShader(gl.FRAGMENT_SHADER, fragCode);
+const shaderProgram = gl.createProgram();
+gl.attachShader(shaderProgram, vertShader);
+gl.attachShader(shaderProgram, fragShader);
+gl.linkProgram(shaderProgram);
+gl.useProgram(shaderProgram);
+
+const coord = gl.getAttribLocation(shaderProgram, "coordinates");
+gl.enableVertexAttribArray(coord);
+gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+
+const offsetUniform = gl.getUniformLocation(shaderProgram, "offset");
+const angleUniform = gl.getUniformLocation(shaderProgram, "angle");
+
+let angle = 0;
+
+function drawGPU() {
+  if (!gpuRunning) return;
+  gl.clearColor(0,0,0,1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  angle += 0.01;
+  for (let i = 0; i < cubePositions.length; i++) {
+    gl.uniform3fv(offsetUniform, cubePositions[i]);
+    gl.uniform1f(angleUniform, angle);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length/3);
+  }
+  requestAnimationFrame(drawGPU);
+}
+
+function toggleBtngpu() {
+  gpuRunning = !gpuRunning;
+  if (gpuRunning) {
+    gpuSpinner.classList.remove('hidden');
+    drawGPU();
+  } else {
+    gpuSpinner.classList.add('hidden');
+  }
+}
+</script>
+</body>
+</html>
+
