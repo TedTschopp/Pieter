@@ -1,169 +1,365 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Browser CPU/GPU Load Tester</title>
-<style>
-body {
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  background: #f4f4f4;
-  text-align: center;
-}
-.titlediv {
-  background-color: rgb(209, 209, 209);
-  border-radius: 15px;
-  width: 60%;
-  margin: 20px auto;
-  padding: 15px;
-}
-fieldset {
-  width: 60%;
-  margin: 20px auto;
-  padding: 20px;
-  border-radius: 10px;
-}
-button {
-  background-color: rgba(211, 8, 8, 0.77);
-  border-radius: 5px;
-  padding: 5px 10px;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 5px solid #ccc;
-  border-top-color: #0078d7;
-  border-radius: 50%;
-  margin-left: 15px;
-  display: inline-block;
-  vertical-align: middle;
-  animation: spin 1s linear infinite;
-}
-.spinner.hidden { display: none; }
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-canvas {
-  display: none;
-}
-input[type=range] { width: 80%; margin-top: 10px; }
-#cpuFPS { font-weight: bold; }
-</style>
-</head>
-<body>
-<div class="titlediv">
-<h1>GPU/CPU Load Tester</h1>
-<p>This might crash your computer if it’s weak 😅</p>
-</div>
-
-<!-- CPU Tester -->
-<fieldset>
-<legend>CPU Tester</legend>
-<button id="toggleBtn">Start Test</button>
-<div id="cpuSpinner" class="spinner hidden"></div>
-<br><br>
-<label for="cpuSlider">CPU Intensity:</label>
-<input type="range" id="cpuSlider" min="1" max="50" value="20" step="1">
-<span id="cpuVal">20</span>
-<p>CPU FPS: <span id="cpuFPS">0</span></p>
-</fieldset>
-
-<!-- GPU Tester -->
-<fieldset>
-<legend>GPU Tester</legend>
-<h3>WARNING: Most computers cannot handle GPU stress test; proceed with caution</h3>
-<button onclick="toggleBtngpu()">Start GPU Test</button>
-<div id="gpuSpinner" class="spinner hidden"></div>
-<canvas id="gpuCanvas" width="800" height="600"></canvas>
-</fieldset>
-
-<script>
-// ----------------------------
-// CPU Stress Test (STRONG + FPS)
-// ----------------------------
-const cpuSpinner = document.getElementById('cpuSpinner');
-const cpuBtn = document.getElementById('toggleBtn');
-const cpuSlider = document.getElementById('cpuSlider');
-const cpuVal = document.getElementById('cpuVal');
-const cpuFPS = document.getElementById('cpuFPS');
-let cpuRunning = false;
-let cpuIntensity = Number(cpuSlider.value);
-
-cpuSlider.oninput = () => {
-  cpuIntensity = Number(cpuSlider.value);
-  cpuVal.textContent = cpuIntensity;
-};
-
-// FPS tracking
-let lastTime = performance.now();
-let frames = 0;
-
-function cpuStressTest() {
-  if (!cpuRunning) return;
-  const start = performance.now();
-
-  // Strong multi-layer CPU stress
-  for (let n = 0; n < cpuIntensity; n++) {
-    let arr = new Array(50000).fill(0);
-    for (let i = 0; i < arr.length; i++) {
-      arr[i] = Math.sqrt(i) * Math.sin(i) * Math.tan(i % 1000) + Math.random();
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="/Favicon.png">
+  <title>Browser CPU/GPU Load Tester</title>
+  <style>
+    body {
+      font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+      background: #f4f4f4;
+      text-align: center;
     }
-  }
 
-  // FPS counter
-  frames++;
-  const now = performance.now();
-  if (now - lastTime >= 1000) {
-    cpuFPS.textContent = frames;
-    frames = 0;
-    lastTime = now;
-  }
+    .titlediv {
+      background-color: rgb(209, 209, 209);
+      border-radius: 15px;
+      width: 60%;
+      margin: 20px auto;
+      padding: 15px;
+    }
 
-  requestAnimationFrame(cpuStressTest);
-}
+    fieldset {
+      width: 60%;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 10px;
+    }
 
-cpuBtn.onclick = () => {
-  cpuRunning = !cpuRunning;
-  if (cpuRunning) {
-    cpuBtn.textContent = "Stop Test";
-    cpuSpinner.classList.remove('hidden');
-    cpuStressTest();
-  } else {
-    cpuBtn.textContent = "Start Test";
-    cpuSpinner.classList.add('hidden');
-    cpuFPS.textContent = 0;
-  }
-};
+    button {
+      background-color: #d30808c4;
+      border-radius: 5px;
+      padding: 5px 10px;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
 
-// ----------------------------
-// GPU Stress Test using WebGL
-// ----------------------------
-const canvas = document.getElementById("gpuCanvas");
-const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-const gpuSpinner = document.getElementById("gpuSpinner");
-let gpuRunning = false;
+    button:hover {
+      background-color: #b20303c4;
+      box-shadow: 2px 2px 5px black;
+      transform: scale(1.05);
+    }
 
-if (!gl) alert("WebGL not supported in your browser!");
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 5px solid #ccc;
+      border-top-color: #0078d7;
+      border-radius: 50%;
+      margin-left: 15px;
+      display: inline-block;
+      vertical-align: middle;
+      animation: spin 1s linear infinite;
+    }
 
-const vertices = [
-  -0.05,-0.05,-0.05,  0.05,-0.05,-0.05,  0.05,0.05,-0.05,  -0.05,0.05,-0.05,
-  -0.05,-0.05,0.05,   0.05,-0.05,0.05,   0.05,0.05,0.05,   -0.05,0.05,0.05
-];
+    .spinner.hidden {
+      display: none;
+    }
 
-const cubePositions = [];
-for (let i = 0; i < 2000000; i++) {
-  cubePositions.push([Math.random()*2-1, Math.random()*2-1, Math.random()*-2]);
-}
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
 
-const vertexBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
-const vertCode = `
+    canvas {
+      display: block;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+    }
+
+    ul {
+      list-style-position: inside;
+      text-align: center;
+      padding: 0;
+      margin: 0 auto;
+      display: inline-block;
+    }
+
+    hr {
+      border: none;
+      height: 2px;
+      width: 100%;
+      margin: 20px auto;
+      background: linear-gradient(to right, transparent, #4b4b4b, transparent);
+    }
+
+    .dropdown {
+      margin-top: 10px;
+    }
+
+    .dropbtn {
+      background-color: #0078d7;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+    }
+
+    .dropbtn:hover {
+      background-color: #005fa3;
+      transform: scale(1.03);
+    }
+
+    .dropdown-content {
+      background-color: #f9f9f9;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      margin-top: 10px;
+      padding: 15px;
+      text-align: left;
+      width: 90%;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .dropdown-content h3 {
+      margin-bottom: 5px;
+      margin-top: 15px;
+    }
+
+    .dropdown-content ul {
+      list-style-type: disc;
+      margin-left: 20px;
+      text-align: left;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    input[type=range] {
+      width: 80%;
+      margin-top: 10px;
+    }
+
+    #cpuFPS,
+    #gpuFPS {
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="titlediv">
+    <h1>GPU/CPU Load Tester</h1>
+    <p>This might crash your computer if it’s weak 😅</p>
+
+    <div class="dropdown">
+      <button class="dropbtn" onclick="toggleDropdown()">Show List of Computers That May Struggle ▼</button>
+      <div id="computerList" class="dropdown-content hidden">
+        <h3>🚫 Very Weak (Will likely hang or crash)</h3>
+        <ul>
+          <li>HP Stream 11 (Intel Celeron N4000, UHD 600)</li>
+          <li>Acer Chromebook 314 (Celeron N4020)</li>
+          <li>Dell Inspiron 15 3000 (AMD A6-9220e)</li>
+          <li>Lenovo IdeaPad 1 (AMD A4-9120e)</li>
+          <li>ASUS VivoBook E203 (Celeron N3350)</li>
+          <li>MacBook Air 2015 (Intel i5-5250U, HD 6000)</li>
+          <li>Raspberry Pi 4 (ARM Cortex-A72, VideoCore VI)</li>
+        </ul>
+
+        <h3>⚠️ Moderate (Will lag heavily)</h3>
+        <ul>
+          <li>Lenovo ThinkPad T440 (i5-4300U, HD 4400)</li>
+          <li>HP Pavilion x360 2016 (i5-6200U, HD 520)</li>
+          <li>Acer Aspire 5 (Ryzen 3 3200U, Vega 3)</li>
+          <li>Surface Laptop Gen 1 (i5-7200U, HD 620)</li>
+          <li>MacBook Air 2017 (i5-5350U, HD 6000)</li>
+          <li>Dell XPS 13 2015 (i7-5500U, HD 5500)</li>
+        </ul>
+
+        <h3>💪 Modern Midrange (Can handle it, but fans spin up)</h3>
+        <ul>
+          <li>Apple M1 MacBook Air</li>
+          <li>Lenovo Legion 5 (Ryzen 5 5600H, RTX 3050)</li>
+          <li>HP Omen 16 (i7-11800H, RTX 3060)</li>
+          <li>Dell XPS 13 Plus (i7-1260P, Iris Xe)</li>
+          <li>MacBook Pro (M2, 2023)</li>
+        </ul>
+
+        <h3>🔥 High-End (Runs fine at full intensity)</h3>
+        <ul>
+          <li>Custom PC (Ryzen 9 7950X, RTX 4080/4090)</li>
+          <li>Alienware M18 (i9-14900HX, RTX 4080)</li>
+          <li>Mac Studio (M2 Ultra)</li>
+          <li>ASUS ROG Strix G16 (i9-13980HX, RTX 4070)</li>
+          <li>Framework Laptop 13 (Ryzen 7 7840U, Radeon 780M)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CPU Tester -->
+  <fieldset>
+    <legend>CPU Tester</legend>
+    <button id="toggleBtn">Start Test</button>
+    <div id="cpuSpinner" class="spinner hidden"></div>
+    <br><br>
+    <label for="cpuSlider">CPU Intensity:</label>
+    <input type="range" id="cpuSlider" min="100" max="5000000" value="1000" step="100">
+    <span id="cpuVal">1000</span>
+    <p>CPU FPS: <span id="cpuFPS">0</span></p>
+    <canvas id="cpuGraph" width="600" height="150"></canvas>
+  </fieldset>
+
+  <!-- GPU Tester -->
+  <fieldset>
+    <legend>GPU Tester</legend>
+    <h3>WARNING: This may lag or freeze older computers — proceed with caution</h3>
+    <button id="gpuToggleBtn">Start GPU Test</button>
+    <div id="gpuSpinner" class="spinner hidden"></div>
+    <br><br>
+    <label for="gpuSlider">GPU Intensity:</label>
+    <input type="range" id="gpuSlider" min="1000" max="40000000" value="10000" step="1000">
+    <span id="gpuVal">10000</span> Cubes spawned.
+    <p>GPU FPS: <span id="gpuFPS">0</span></p>
+    <canvas id="gpuCanvas" width="800" height="600" style="display: none;"></canvas>
+  </fieldset>
+
+  <hr>
+
+  <fieldset>
+    <h1>How this works:</h1>
+    <p>CPU test performs heavy math in nested loops, measuring FPS over time.</p>
+    <p>GPU test draws many cubes in WebGL, each frame calculating their rotations.</p>
+  </fieldset>
+
+  <script>
+    function toggleDropdown() {
+      const list = document.getElementById('computerList');
+      const btn = document.querySelector('.dropbtn');
+      const isHidden = list.classList.contains('hidden');
+      if (isHidden) {
+        list.classList.remove('hidden');
+        btn.textContent = "Hide List of Computers ▲";
+      } else {
+        list.classList.add('hidden');
+        btn.textContent = "Show List of Computers That May Struggle ▼";
+      }
+    }
+  </script>
+
+  <script>
+    // ----------------------------
+    // CPU Stress Test + Graph
+    // ----------------------------
+    const cpuSpinner = document.getElementById('cpuSpinner');
+    const cpuBtn = document.getElementById('toggleBtn');
+    const cpuSlider = document.getElementById('cpuSlider');
+    const cpuVal = document.getElementById('cpuVal');
+    const cpuFPS = document.getElementById('cpuFPS');
+    const cpuGraph = document.getElementById('cpuGraph');
+    const ctx = cpuGraph.getContext('2d');
+
+    let cpuRunning = false;
+    let cpuIntensity = Number(cpuSlider.value);
+    let frames = 0;
+    let lastTime = performance.now();
+    let fpsHistory = [];
+
+    cpuSlider.oninput = () => {
+      cpuIntensity = Number(cpuSlider.value);
+      cpuVal.textContent = cpuIntensity;
+    };
+
+    function doHeavyWork(iterations) {
+      let x = 0;
+      for (let i = 0; i < iterations; i++) {
+        x += Math.sin(i) * Math.cos(i);
+        x += Math.sqrt(Math.abs(Math.tan(i % 100))) * Math.log(i + 1);
+        x += Math.pow(Math.sin(i), 3) * Math.exp(Math.sin(i));
+      }
+      return x;
+    }
+
+    function drawGraph() {
+      ctx.clearRect(0, 0, cpuGraph.width, cpuGraph.height);
+      if (fpsHistory.length === 0) return;
+      ctx.beginPath();
+      ctx.moveTo(0, cpuGraph.height - fpsHistory[0]);
+      for (let i = 1; i < fpsHistory.length; i++) {
+        const x = (i / fpsHistory.length) * cpuGraph.width;
+        const y = cpuGraph.height - fpsHistory[i];
+        ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = '#0078d7';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function cpuStressTest() {
+      if (!cpuRunning) return;
+
+      doHeavyWork(cpuIntensity * 1000);
+
+      frames++;
+      const now = performance.now();
+      if (now - lastTime >= 1000) {
+        cpuFPS.textContent = frames;
+        fpsHistory.push(Math.min(frames, cpuGraph.height));
+        if (fpsHistory.length > 100) fpsHistory.shift();
+        drawGraph();
+        frames = 0;
+        lastTime = now;
+      }
+      requestAnimationFrame(cpuStressTest);
+    }
+
+    cpuBtn.onclick = () => {
+      cpuRunning = !cpuRunning;
+      if (cpuRunning) {
+        cpuBtn.textContent = "Stop Test";
+        cpuSpinner.classList.remove('hidden');
+        frames = 0;
+        lastTime = performance.now();
+        fpsHistory = [];
+        cpuStressTest();
+      } else {
+        cpuBtn.textContent = "Start Test";
+        cpuSpinner.classList.add('hidden');
+        cpuFPS.textContent = 0;
+      }
+    };
+
+    // ----------------------------
+    // GPU Stress Test using WebGL
+    // ----------------------------
+    const canvas = document.getElementById("gpuCanvas");
+    const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    const gpuSpinner = document.getElementById("gpuSpinner");
+    const gpuFPS = document.getElementById("gpuFPS");
+    let gpuRunning = false;
+
+    if (!gl) alert("WebGL not supported in your browser!");
+
+    const vertices = [
+      -0.05, -0.05, -0.05, 0.05, -0.05, -0.05, 0.05, 0.05, -0.05, -0.05, 0.05, -0.05,
+      -0.05, -0.05, 0.05, 0.05, -0.05, 0.05, 0.05, 0.05, 0.05, -0.05, 0.05, 0.05
+    ];
+
+    const cubePositions = [];
+    for (let i = 0; i < 40000000; i++) {
+      cubePositions.push([Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * -2]);
+    }
+
+    const vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+    const vertCode = `
   attribute vec3 coordinates;
   uniform vec3 offset;
   uniform float angle;
@@ -179,61 +375,83 @@ const vertCode = `
     );
   }`;
 
-const fragCode = `
+    const fragCode = `
   void main(void) {
     gl_FragColor = vec4(0.2, 0.8, 0.5, 1.0);
   }`;
 
-function createShader(type, source){
-  const shader = gl.createShader(type);
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    console.error(gl.getShaderInfoLog(shader));
-  }
-  return shader;
-}
+    const vertShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vertShader, vertCode);
+    gl.compileShader(vertShader);
 
-const vertShader = createShader(gl.VERTEX_SHADER, vertCode);
-const fragShader = createShader(gl.FRAGMENT_SHADER, fragCode);
-const shaderProgram = gl.createProgram();
-gl.attachShader(shaderProgram, vertShader);
-gl.attachShader(shaderProgram, fragShader);
-gl.linkProgram(shaderProgram);
-gl.useProgram(shaderProgram);
+    const fragShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fragShader, fragCode);
+    gl.compileShader(fragShader);
 
-const coord = gl.getAttribLocation(shaderProgram, "coordinates");
-gl.enableVertexAttribArray(coord);
-gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertShader);
+    gl.attachShader(shaderProgram, fragShader);
+    gl.linkProgram(shaderProgram);
+    gl.useProgram(shaderProgram);
 
-const offsetUniform = gl.getUniformLocation(shaderProgram, "offset");
-const angleUniform = gl.getUniformLocation(shaderProgram, "angle");
+    const coord = gl.getAttribLocation(shaderProgram, "coordinates");
+    gl.enableVertexAttribArray(coord);
+    gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
 
-let angle = 0;
+    const offsetUniform = gl.getUniformLocation(shaderProgram, "offset");
+    const angleUniform = gl.getUniformLocation(shaderProgram, "angle");
 
-function drawGPU() {
-  if (!gpuRunning) return;
-  gl.clearColor(0,0,0,1);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-  angle += 0.01;
-  for (let i = 0; i < cubePositions.length; i++) {
-    gl.uniform3fv(offsetUniform, cubePositions[i]);
-    gl.uniform1f(angleUniform, angle);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length/3);
-  }
-  requestAnimationFrame(drawGPU);
-}
+    let angle = 0;
 
-function toggleBtngpu() {
-  gpuRunning = !gpuRunning;
-  if (gpuRunning) {
-    gpuSpinner.classList.remove('hidden');
-    drawGPU();
-  } else {
-    gpuSpinner.classList.add('hidden');
-  }
-}
-</script>
+    // GPU Slider
+    const gpuSlider = document.getElementById("gpuSlider");
+    const gpuVal = document.getElementById("gpuVal");
+    let gpuIntensity = Number(gpuSlider.value);
+
+    gpuSlider.oninput = () => {
+      gpuIntensity = Number(gpuSlider.value);
+      gpuVal.textContent = gpuIntensity;
+    };
+
+    let gpuFrames = 0;
+    let gpuLastTime = performance.now();
+
+    function drawGPU() {
+      if (!gpuRunning) return;
+
+      gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      angle += 0.01;
+
+      const count = Math.min(gpuIntensity, cubePositions.length);
+      for (let i = 0; i < count; i++) {
+        gl.uniform3fv(offsetUniform, cubePositions[i]);
+        gl.uniform1f(angleUniform, angle);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, vertices.length / 3);
+      }
+
+      gpuFrames++;
+      const now = performance.now();
+      if (now - gpuLastTime >= 1000) {
+        gpuFPS.textContent = gpuFrames;
+        gpuFrames = 0;
+        gpuLastTime = now;
+      }
+
+      requestAnimationFrame(drawGPU);
+    }
+
+    document.getElementById("gpuToggleBtn").onclick = () => {
+      gpuRunning = !gpuRunning;
+      if (gpuRunning) {
+        gpuSpinner.classList.remove('hidden');
+        drawGPU();
+      } else {
+        gpuSpinner.classList.add('hidden');
+        gpuFPS.textContent = 0;
+      }
+    };
+  </script>
 </body>
-</html>
 
+</html>
