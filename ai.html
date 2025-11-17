@@ -1,3 +1,23 @@
+<!-- ==========================================================
+Owned by Pieter Tschopp  
+Endo-Prism AI Organization
+
+All rights belong to their respective owners.  
+Endo Prism AI is an independent creation and is not affiliated with, endorsed by, 
+or sponsored by any companies, platforms, or trademark holders (yet).
+
+“Endo Prism AI,” including its design elements, logic systems, codebase, and branding, 
+is the intellectual property of its creators.  
+Unauthorized copying, modification, redistribution, or commercial use is strictly prohibited.
+
+
+Contributors / Team:
+- Pieter Tschopp
+- Preston Finlay
+- Abigal Finlay
+============================================================== -->
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,7 +25,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" href="/Favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Endo Prism AI — Smart Web Builder</title>
+    <title>Endo Prism AI</title>
     <style>
         :root {
             --bg: #f3f4f6;
@@ -195,88 +215,137 @@
         <button id="sendBtn">Send</button>
     </footer>
 
-    <script>
+ <script>
+/* ==========================================================
+   Endo Prism AI — ULTRA INTE`LLIGENT EDITION                |
+   Web Search + Intent Engine + Real Answers                |
+   ========================================================== */
+
 const chat = document.getElementById('chat');
 const input = document.getElementById('userInput');
 const sendBtn = document.getElementById('sendBtn');
 const toggleDark = document.getElementById('toggleDark');
 
-// Dark mode toggle
+/* DARK MODE */
 toggleDark.addEventListener('click', () => document.body.classList.toggle('dark'));
 
-// Memory
-let memory = [];
-let conversationTopics = [];
+/* MEMORY SYSTEM */
+let memory = {
+    topics: [],
+    lastTopic: "",
+    recentMessages: []
+};
 
-// Local info.json
+/* OPTIONAL LOCAL KNOWLEDGE FILE */
 let localKnowledge = {};
-
-async function loadLocalKnowledge() {
+(async () => {
     try {
-        const res = await fetch("info.json");
-        localKnowledge = await res.json();
-    } catch (err) {
-        console.warn("info.json not found");
-    }
-}
+        const data = await fetch("info.json");
+        localKnowledge = await data.json();
+    } catch {}
+})();
 
-loadLocalKnowledge();
-
-// Append message bubble
-function appendMessage(text, sender = 'ai') {
-    const msg = document.createElement('div');
+/* ==========================================================
+   UI HELPERS
+   ========================================================== */
+function appendMessage(text, sender = "ai") {
+    const msg = document.createElement("div");
     msg.className = `message ${sender}`;
     msg.textContent = text;
     chat.appendChild(msg);
     chat.scrollTop = chat.scrollHeight;
 }
 
-// Web search + Wikipedia + knowledge
-async function fetchWebData(topic) {
-    appendMessage(`🔎 Searching the web for info about ${topic}...`);
+function showCodeBlock(html) {
+    const wrap = document.createElement("div");
+    wrap.style.position = "relative";
+    wrap.style.margin = "10px 0";
 
-    // info.json check
-    if (localKnowledge[topic.toLowerCase()]) {
-        return localKnowledge[topic.toLowerCase()];
-    }
+    const pre = document.createElement("pre");
+    pre.textContent = html;
+    wrap.appendChild(pre);
 
-    // DuckDuckGo Lite
-    try {
-        const q = encodeURIComponent(topic);
-        const url = `https://duckduckgo.com/lite/?q=${q}`;
-        const res = await fetch(url);
-        const html = await res.text();
+    const btn = document.createElement("button");
+    btn.textContent = "Copy";
+    btn.className = "copy-btn";
+    btn.onclick = () => {
+        navigator.clipboard.writeText(html);
+        btn.textContent = "Copied!";
+        setTimeout(() => btn.textContent = "Copy", 1500);
+    };
 
-        const doc = new DOMParser().parseFromString(html, "text/html");
-        const snippet = doc.querySelector("td.result-snippet");
-
-        if (snippet) {
-            return snippet.textContent.trim() + "\n\n🌐 DuckDuckGo Web Search";
-        }
-    } catch (e) {}
-
-    // Wikipedia fallback
-    try {
-        const q = encodeURIComponent(topic);
-        const wiki = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${q}`);
-        const data = await wiki.json();
-        if (data.extract) return data.extract + "\n\n🔗 Source from Wikipedia.com";
-    } catch (e) {}
-
-    return "❌ No information found.";
+    wrap.appendChild(btn);
+    chat.appendChild(wrap);
+    chat.scrollTop = chat.scrollHeight;
 }
 
-// Generate website HTML
-function generateWebsiteHTML(topic, info) {
+/* ==========================================================
+   NO-API WEB SEARCH ENGINE
+   ========================================================== */
+
+async function fetchWebData(topic) {
+    appendMessage(`🔎 Searching the web for “${topic}”...`);
+
+    const q = encodeURIComponent(topic);
+
+  try {
+    const url = `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+    const res = await fetch(url, {
+        headers: {
+            // Helps Google return a real page instead of blocking
+            "User-Agent": "Mozilla/5.0"
+        }
+    });
+
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, "text/html");
+
+ 
+} catch (err) {
+    console.error("Error fetching Google:", err);
+}
+
+    /* 2) Wikipedia Summary */
+    try {
+        const wiki = await fetch(
+            `https://en.wikipedia.org/api/rest_v1/page/summary/${q}`
+        );
+        const data = await wiki.json();
+        if (data.extract) {
+            return `📘 Wikipedia:
+${data.extract}`;
+        }
+    } catch {}
+
+    /* 3) Bing HTML SCRAPE (NO KEY) */
+    try {
+        const bing = await fetch(`https://www.bing.com/search?q=${q}`);
+        const html = await bing.text();
+        const doc = new DOMParser().parseFromString(html, "text/html");
+
+        const p = doc.querySelector(".b_algo p");
+        if (p) {
+            return `🔍 Bing Search:
+${p.textContent.trim()}`;
+        }
+    } catch {}
+
+    return "❌ No information found online.";
+}
+
+/* ==========================================================
+   WEBSITE GENERATOR
+   ========================================================== */
+function generateWebsite(topic, info) {
 return `<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <title>${topic} Website</title>
+<meta charset="UTF-8">
 <style>
-body { font-family:sans-serif; margin:20px; background:#fafafa; color:#111; }
-h1 { color:#0078d7; }
-p { max-width:700px; line-height:1.6; white-space:pre-wrap; }
+body { font-family: sans-serif; margin: 20px; }
+h1 { color: #0078d7; }
+p { max-width: 700px; line-height: 1.6; white-space: pre-wrap; }
 </style>
 </head>
 <body>
@@ -286,102 +355,110 @@ p { max-width:700px; line-height:1.6; white-space:pre-wrap; }
 <\/html>`;
 }
 
-// Show code block with copy button
-function showCodeBlock(html) {
-    const wrapper = document.createElement('div');
-    wrapper.style.position = 'relative';
-    wrapper.style.margin = '8px 0';
+/* ==========================================================
+   SUPER AI INTENT ENGINE
+   ========================================================== */
 
-    const pre = document.createElement('pre');
-    pre.textContent = html;
-    wrapper.appendChild(pre);
+function detectIntent(text) {
+    text = text.toLowerCase();
 
-    const copyBtn = document.createElement('button');
-    copyBtn.textContent = 'Copy';
-    copyBtn.className = 'copy-btn';
-    copyBtn.style.position = 'absolute';
-    copyBtn.style.top = '8px';
-    copyBtn.style.right = '8px';
-    copyBtn.onclick = () => {
-        navigator.clipboard.writeText(html).then(() => {
-            copyBtn.textContent = 'Copied!';
-            setTimeout(() => copyBtn.textContent = 'Copy', 1500);
-        });
-    };
-    wrapper.appendChild(copyBtn);
+    if (/^hi$|^hey$|^hello$/.test(text)) return "greeting";
+    if (/how are you/.test(text)) return "status";
+    if (/bye|goodbye/.test(text)) return "bye";
 
-    chat.appendChild(wrapper);
-    chat.scrollTop = chat.scrollHeight;
+    if (/^search /.test(text)) return "searchExplicit";
+
+    if (/make.*website/.test(text)) return "buildWebsite";
+
+    if (text.startsWith("what is") || text.startsWith("who is"))
+        return "defineThing";
+
+    if (/tell me about/.test(text))
+        return "defineThing";
+
+    return "conversation";
 }
 
-// AI Logic
-function getAIReply(text) {
-    const lower = text.toLowerCase().trim();
+/* ==========================================================
+   AI RESPONSE BRAIN
+   ========================================================== */
 
-    if (/(hello|hi|hey)/i.test(lower)) return "Hey! 👋 How's your day going?";
-    if (/how are you/i.test(lower)) return "I'm doing great — ready to help!";
-    if (/bye|goodbye/i.test(lower)) return "Goodbye! 👋";
+async function handleAI(text) {
+    const intent = detectIntent(text);
+    memory.recentMessages.push(text);
 
-    const trivial = ["ok", "yes", "no", "good", "fine", "thanks"];
-    if (trivial.includes(lower)) return "Got it! Tell me more. 🙂";
+    switch (intent) {
 
-    const words = lower.split(/\s+/).filter(w => w.length > 2 && !trivial.includes(w));
-    if (words.length) conversationTopics.push(words.join(" "));
+        case "greeting":
+            return "Hey! 👋 What do you want to know or build?";
 
-    if (conversationTopics.length > 0) {
-        const last = conversationTopics[conversationTopics.length - 1];
-        return `That’s interesting! Want me to make a website about “${last}”?`;
+        case "status":
+            return "I'm running perfectly 😎 How can I help?";
+
+        case "bye":
+            return "Goodbye! 👋";
+
+        case "searchExplicit": {
+            const query = text.replace(/^search /i, "").trim();
+            const info = await fetchWebData(query);
+            return info;
+        }
+
+        case "defineThing": {
+            const thing = text.replace(/what is|who is|tell me about/i, "").trim();
+            memory.lastTopic = thing;
+            const info = await fetchWebData(thing);
+            return info;
+        }
+
+        case "buildWebsite": {
+            const topic = text.replace(/make.*website about/i, "").trim();
+            const info = await fetchWebData(topic);
+            const html = generateWebsite(topic, info);
+            appendMessage("✅ Website generated!");
+            showCodeBlock(html);
+            return "";
+        }
+
+        default:
+            memory.topics.push(text);
+            return `Interesting! Want me to search the web or build a website about ${text}?`;
     }
-
-    return "Interesting! I can make a website about it if you want.";
 }
 
-// Process input
+/* ==========================================================
+   INPUT PROCESSOR
+   ========================================================== */
+
 async function processInput(raw) {
     const text = raw.trim();
     if (!text) return;
 
-    appendMessage(text, 'user');
-    input.value = '';
+    appendMessage(text, "user");
+    input.value = "";
 
-    // info.json auto-response
-    const key = Object.keys(localKnowledge).find(k =>
-        text.toLowerCase().includes(k.toLowerCase())
-    );
+    const response = await handleAI(text);
 
-    if (key) {
-        appendMessage("📘 From local knowledge:");
-        appendMessage(localKnowledge[key]);
-        return;
-    }
-
-    // Website generation
-    const match = text.match(/make a website about (.+)/i);
-    if (match) {
-        const topic = match[1];
-        const info = await fetchWebData(topic);
-        const html = generateWebsiteHTML(topic, info);
-        appendMessage("✅ Website code generated below:");
-        showCodeBlock(html);
-        return;
-    }
-
-    // Normal AI chat
-    appendMessage(getAIReply(text));
+    if (response && response.trim() !== "")
+        appendMessage(response);
 }
 
-// Event listeners
+/* EVENT LISTENERS */
 sendBtn.onclick = () => processInput(input.value);
-input.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+input.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        sendBtn.click();
+        processInput(input.value);
     }
 });
 
-// Greeting
-appendMessage("👋 Hello! I'm Endo Prism AI. Chat with me or ask me to make a website about something!");
-    </script>
+/* FIRST MESSAGE */
+appendMessage("👋 Hello! I'm Endo Prism AI. I can search the web, answer questions, and build websites!");
+
+</script>
+
+
+
 
 </body>
 </html>
