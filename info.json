@@ -6,8 +6,12 @@
   "sup": "All good here! How’s it going?",
   "greetings": "Greetings, traveler of the digital realm 🧠",
   "hell": "Did you mean 'hello'? 😅 Either way, I’m here to help!",
-  
+  "hi there": "Hey there! 👋",
+  "hello there": "General Kenobi 😉",
+  "yo yo": "Double yo! 😎",
+
   "how are you": "Smooth, optimized, and ready 😎 You?",
+  "how's it going": "Running perfectly — how about you?",
   "good": "Awesome! Glad to hear it 👍",
   "great": "Great! 🚀 Keep that energy up!",
   "bad": "Ah, sorry to hear that. Want to talk?",
@@ -28,17 +32,22 @@
   "idk": "No worries — let’s figure it out 🤔",
   "idc": "Fair enough 😅",
   "hmm": "Thinking… 🤔",
+  "bet": "Bet! 😎",
+  "say less": "Understood — doing it now 👌",
 
   "thanks": "You got it! 😊",
   "thank you": "Happy to help!",
   "np": "No problem! 👍",
   "yw": "You're welcome 😄",
   "sorry": "No worries — all good!",
+  "appreciate it": "Anytime! 🙌",
 
   "bye": "Catch you later 👋",
   "goodbye": "Goodbye! Talk soon 🚀",
   "see ya": "See ya 👋",
   "take care": "You too — stay awesome!",
+  "gtg": "All good — see you next time!",
+  "cya": "Cya! 👋",
 
   "lol": "😂 Haha!",
   "lmao": "😂 That one got me too!",
@@ -51,6 +60,8 @@
   "irl": "In real life? Totally different 🌍",
   "omg": "😳 Wild!",
   "wow": "Wow indeed 🤯",
+  "skibidi": "Rizz? Sigma? I can keep up 😂",
+  "what the": "Let’s unpack this calmly 😂",
 
   "who are you": "I’m Endo Prism AI — smart, fast, local, and privacy-first.",
   "what can you do": "I chat, code, explain, fix errors, design, and assist offline.",
@@ -64,7 +75,10 @@
   "how": "Here’s how it works 🔍",
   "when": "Let’s check the timing ⏰",
   "where": "Looking it up 🗺️",
-  "who": "Let’s look at who that is 👤",
+  "who": "Let’s find out 👤",
+  "explain": "Sure — explain what exactly?",
+  "define": "Give me the word and I’ll define it!",
+  "example": "Here’s a quick example 👇",
 
   "what's your name": "I’m Endo Prism AI — your local assistant.",
   "who made you": "Created by devs who love speed, privacy, and offline tech.",
@@ -73,6 +87,7 @@
   "update": "Offline updates: download the latest release manually.",
   "restart": "Restart the service to apply changes.",
   "clear": "Clearing session data 🧹",
+  "settings": "Adjust settings in config.json 🛠️",
 
   "run": "Use npm start, python main.py, or your project’s start command.",
   "deploy": "Deploy to staging first, then production 🚀",
@@ -80,6 +95,9 @@
   "debug": "Debugging — let’s find the bug 🔍",
   "error": "Errors help us learn — let’s fix it ⚠️",
   "bug": "Bug detected — squashing 🐛",
+  "compile": "Compiling… 🔧",
+  "build": "Building the project… ⛏️",
+  "crash": "System down 😵 — restarting…",
 
   "ai": "Artificial Intelligence: computers simulating thinking 🤖",
   "ml": "Machine Learning: AI that learns from data.",
@@ -99,10 +117,13 @@
   "json": "JSON is structured data text 🧾",
   "git": "Git tracks code changes 🧠",
   "github": "GitHub hosts repos and teams 💻",
+  "api": "APIs let apps talk to each other 🔌",
+  "framework": "A framework gives structure to your project 🧱",
 
   "privacy": "Privacy first — offline by default 🔒",
   "offline": "Yep! Fully usable offline.",
   "online": "Online mode lets me expand with live data.",
+  "cache": "Cached locally for speed ⚡",
 
   "car": "Cars — engines, speed, and engineering 🏎️",
   "plane": "Planes — lift, thrust, and aerodynamics ✈️",
@@ -111,11 +132,14 @@
   "ev": "Electric vehicles run on stored power 🔋",
   "drift": "Controlled oversteer — art in motion 🌀",
   "awd": "All-Wheel Drive — traction everywhere 🛞",
+  "horsepower": "Horsepower = engine work over time ⚡",
+  "rpm": "RPM measures spinning speed 🔁",
 
   "music": "Music is emotion in sound 🎶",
   "movie": "Movies bring stories to life 🎬",
   "game": "Games blend creativity and logic 🎮",
   "meme": "Memes = internet culture in pictures 😂",
+  "anime": "Anime: animation with style 🇯🇵",
 
   "weather": "Offline mode — can’t fetch live weather.",
   "time": "Time is a continuous measurement ⏳",
@@ -134,11 +158,6 @@
   "2026": "2026 — new milestones ahead 🎉",
   "future": "The future is programmable 💾",
 
-  "hi there": "Hey there! 👋",
-  "hello there": "General Kenobi 😉",
-  "yo yo": "Double yo! 😎",
-  "okie": "Okie dokie!",
-  "nah bro": "Fair enough 😅",
   "for sure": "Absolutely!",
   "definitely": "No doubt about it.",
   "literally": "Literally literally 😆",
@@ -151,6 +170,10 @@
   "joke": "Want a joke? I’ve got tons!",
   "fun": "Fun keeps creativity alive 🎉",
   "fact": "Want a fun fact?",
-  "explain": "Sure — explain what exactly?",
-  "define": "Give me the word and I’ll define it!"
+  "chrome": "Chrome is a browser, the most downloaded browser in the world.",
+
+  "bugfix": "Fixing it — one line at a time 🛠️",
+  "optimize": "Optimizing… making it faster ⚡",
+  "clean code": "Clean code = happy devs 😄",
+  "stack": "Stack = the layers of your tech 🧱"
 }

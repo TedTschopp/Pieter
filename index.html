@@ -1,13 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    
   <meta charset="UTF-8" />
-    
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pieter's Website</title>
-    <style>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Personal website of Pieter W.C. Tschopp (PWCT) — student, aspiring pilot, and computer science enthusiast. Explore my projects, interests, and pets!">
+  <meta name="author" content="Pieter William Conijn Tschopp">
+  <meta name="keywords" content="Pieter Tschopp, PWCT, Royal Oaks School, student, pilot, CS, computer science, website projects">
+  
+  <!-- Base URL -->
+  <base href="https://pieter.tschopp.org/">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/Favicon.png" type="image/png">
+
+  <title>Pieter's Website</title>
+
+  <style>
     /* =========================
        GLOBAL RESET
     ========================= */
@@ -29,8 +38,8 @@
     }
 
     /* =========================
-   NAV BAR
-========================= */
+       NAV BAR
+    ========================= */
     .main-nav {
       position: sticky;
       top: 0;
@@ -42,16 +51,14 @@
       background: linear-gradient(90deg, #004080, #007bff);
       color: white;
       border-radius: 0 0 15px 15px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      /* Smooth transition for background and box-shadow */
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       transition: background 10s ease, box-shadow 0.7s ease;
     }
 
     .main-nav:hover {
       background: linear-gradient(90deg, #0056b3, #57a8ff);
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.35);
     }
-
 
     .main-nav .nav-brand {
       font-size: 1.6rem;
@@ -124,25 +131,17 @@
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
     }
 
-    .leftimg,
-    .imgright {
+    .leftimg, .imgright {
       width: 300px;
       height: 200px;
       object-fit: cover;
       border-radius: 15px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.25);
       margin-bottom: 10px;
     }
 
-    .leftimg {
-      float: left;
-      margin-right: 20px;
-    }
-
-    .imgright {
-      float: right;
-      margin-left: 20px;
-    }
+    .leftimg { float: left; margin-right: 20px; }
+    .imgright { float: right; margin-left: 20px; }
 
     /* =========================
        LINKS / BUTTONS
@@ -159,7 +158,7 @@
 
     .websites:hover {
       transform: scale(1.1);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
 
     /* =========================
@@ -179,7 +178,7 @@
     .pet-card {
       background: white;
       border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       width: 280px;
       padding: 20px;
       text-align: center;
@@ -188,7 +187,7 @@
 
     .pet-card:hover {
       transform: translateY(-8px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     }
 
     .pet-card img {
@@ -198,7 +197,7 @@
     }
 
     /* =========================
-       CONTACT ME SECTION
+       CONTACT / SUPPORT SECTION
     ========================= */
     .contact-box {
       max-width: 700px;
@@ -207,13 +206,13 @@
       color: #003366;
       border-radius: 15px;
       padding: 30px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .contact-box:hover {
       transform: translateY(-10px);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     }
 
     .contact-box h2 {
@@ -253,24 +252,6 @@
       transform: scale(1.03);
     }
 
-    /* =========================
-       FIELDSETS
-    ========================= */
-    fieldset {
-      border-radius: 10px;
-      margin-bottom: 20px;
-    }
-
-    h3.sub+title {
-      font-size: medium;
-      font-family: sans-serif;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    /* =========================
-       CONTACT LINKS
-    ========================= */
     .contact-box p a {
       color: #003366;
       font-weight: bold;
@@ -280,119 +261,126 @@
     .contact-box p a:hover {
       color: #57a8ff;
     }
+
+    /* =========================
+       RESPONSIVE IMAGES
+    ========================= */
+    @media (max-width: 768px) {
+      .leftimg, .imgright {
+        float: none;
+        display: block;
+        margin: 0 auto 20px;
+        width: 100%;
+        height: auto;
+      }
+    }
   </style>
 </head>
-
 <body>
 
-    <!-- NAVIGATION BAR -->
-    <nav class="main-nav">
-        <div class="nav-brand">Home Page</div>
-        <div class="navheading">Links:</div>
-        <ul class="nav-links">
-            <li><a href="#about">About</a></li>
-            <li><a href="#websites">Websites</a></li>
-            <li><a href="#pets">Pets</a></li>
-            <li><a href="#contact">Contact</a></li>
-          </ul>
-      </nav>
+  <!-- NAVIGATION BAR -->
+  <nav class="main-nav">
+    <div class="nav-brand">Home Page</div>
+    <div class="navheading">Links:</div>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#why-websites">Websites</a></li>
+      <li><a href="#pets">Pets</a></li>
+      <li><a href="#support">Support</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
 
-    <!-- ABOUT SECTION -->
-    <h1 class="title">Home-Page</h1>
-    <div id="about" class="box">
-        <img class="leftimg"  src="/img/Leoinwild.JPG" alt="Leo in the wild">
-        <img class="imgright"  src="/img/Cloud.jpeg" alt="White cat going to sleep">
-        <p>
-            Hey! I’m a student at Royal Oaks School, and I’ve always been someone who loves learning new things and
-      thinking about how they work. Ever since I was little, I’ve been fascinated by airplanes — the sound of engines,
-      the feeling of takeoff, and the idea of traveling across the world. That’s what inspired my dream of becoming a
-      pilot one day. Flying feels like freedom to me, and I’d love to explore the skies while visiting new places and
-      meeting people from different parts of the world.
-          </p>
+  <!-- ABOUT SECTION -->
+  <h1 class="title">Home-Page</h1>
+  <div id="about" class="box">
+    <img class="leftimg" src="/Imgs/Leoinwild.JPG" alt="Leo in the wild">
+    <img class="imgright" src="/Img/Cloud.jpeg" alt="White cat going to sleep">
+    <p>
+      Hey! I’m a student at Royal Oaks School, and I’ve always been someone who loves learning new things and thinking about how they work. Ever since I was little, I’ve been fascinated by airplanes — the sound of engines, the feeling of takeoff, and the idea of traveling across the world. That’s what inspired my dream of becoming a pilot one day. Flying feels like freedom to me, and I’d love to explore the skies while visiting new places and meeting people from different parts of the world.
+    </p>
+    <p>
+      At the same time, I’m really into technology and computers. I love problem-solving, figuring out how systems connect, and learning how to make things better with code. My goal is to earn a degree in Computer Science, where I can study programming, design, and all the cool things that go into creating modern technology. I think it’s amazing how both aviation and computer science rely on precision, logic, and creativity — and I want to bring those worlds together somehow.
+    </p>
+    <p>
+      Outside of school, I enjoy spending time learning new skills, exploring creative projects, and setting goals for my future. Whether I’m dreaming about flying planes or building something on my computer, I always try to stay curious, focused, and positive about where life will take me next.
+    </p>
+  </div>
 
-        <p>
-            At the same time, I’m really into technology and computers. I love problem-solving, figuring out how systems
-      connect, and learning how to make things better with code. My goal is to earn a degree in Computer Science, where
-      I can study programming, design, and all the cool things that go into creating modern technology. I think it’s
-      amazing how both aviation and computer science rely on precision, logic, and creativity — and I want to bring
-      those worlds together somehow.
-          </p>
+  <!-- WHY I MADE THESE WEBSITES SECTION -->
+  <h2 class="subtitle" id="why-websites">Why I Made These Websites</h2>
+  <div class="box">
+    <img class="leftimg" src="/Imgs/VScodeimg.png" alt="Screenshot of code">
+    <p>
+      I created these websites mainly for fun and to learn more about interesting topics. I love exploring things like airplanes, wildlife, or other subjects I’m curious about, and building a website is a great way to share that knowledge.
+    </p>
+    <p>
+      Most of my sites are educational — they help me and others study and understand real-world things, like how planes work, where tigers live, or how nature and technology connect. Making them is like combining learning with creativity.
+    </p>
+    <p>
+      Building these websites also teaches me new coding skills while letting me explore the subjects I enjoy. Each project is both a learning experience and a way to make studying more fun and interactive.
+    </p>
+  </div>
 
-        <p>
-            Outside of school, I enjoy spending time learning new skills, exploring creative projects, and setting goals
-      for my future. Whether I’m dreaming about flying planes or building something on my computer, I always try to stay
-      curious, focused, and positive about where life will take me next.
-          </p>
-      </div>
+  <!-- MY WEBSITE LINKS SECTION -->
+  <section id="mylinks" class="box">      
+    <h2 style="text-align:center;color:white;">My Websites</h2>
+    <ul style="list-style:none;padding:0;text-align:center;font-size:1.1rem;">
+      <li><a class="websites" href="cats" target="_blank">🐱 Cats</a></li><br>
+      <li><a class="websites" href="dogs" target="_blank">🐶 Dogs</a></li><br>
+      <li><a class="websites" href="cars" target="_blank">🚗 Cars</a></li><br>
+      <li><a class="websites" href="planes" target="_blank">✈️ Planes</a></li><br>
+      <li><a class="websites" href="Around-the-Sea" target="_blank">🌊 Around the Sea</a></li><br>
+      <li><a class="websites" href="turtles" target="_blank">🐢 Turtles</a></li>
+    </ul>
+  </section>
 
-    <!-- WEBSITES SECTION -->
-    <h2 class="subtitle" id="websites">Why I Made These Websites</h2>
-    <div class="box">
-        <img class="leftimg"  src="/img/VScodeimg.png" alt="Screenshot of code">
-        <p>
-            I created these websites mainly for fun and to learn more about interesting topics. I love exploring things
-      like airplanes, wildlife, or other subjects I’m curious about, and building a website is a great way to share that
-      knowledge.
-          </p>
+  <!-- PETS SECTION -->
+  <h2 class="subtitle" id="pets">My Pets</h2>
+  <div class="pets-box">
+    <div class="pet-card">
+      <h2>Cats</h2>
+      <h3>Leo 🐱</h3>
+      <p>A white cat with a brown and grey coat. Loves to sleep in dark places like under the bed, couch, chair, in the closet, and more!</p>
+    </div>
+    <div class="pet-card">
+      <h3>Cloud 🐱</h3>
+      <p>A white Siamese that likes to sleep and bask in the sunlight. She enjoys drinking water from the tap and loves to snuggle up with her owner!</p>
+    </div>
+    <div class="pet-card">
+      <h3>Lea 🐱</h3>
+      <p>A black cat who loves to sleep under the bed and eat when it is dark or quiet.</p>
+    </div>
+    <div class="pet-card">
+      <h3>Takoda / Coda 🐶</h3>
+      <p>A shepherds mix with a fluffy tail who has arthritis and loves to sleep and not move much!</p>
+    </div>
+    <div class="pet-card">
+      <h3>Cadet 🐶</h3>
+      <p>A grey Cane Corso who loves to sleep and is very affectionate to his owners.</p>
+    </div>
+    <div class="pet-card">
+      <h3>Toby 🐶</h3>
+      <p>An American Bully who is also very sleepy, but when he is awake he goes crazy!</p>
+    </div>
+  </div>
 
-        <p>
-            Most of my sites are educational — they help me and others study and understand real-world things, like how
-      planes work, where tigers live, or how nature and technology connect. Making them is like combining learning with
-      creativity.
-          </p>
+  
+  <!-- CONTACT SECTION -->
+  <h2 class="subtitle" id="contact">Contact Me</h2>
+  <div class="contact-box">
+    <h2>Send Me a Message</h2>
+    <form class="contact-form" action="mailto:Pietertschopp065@gmail.com" method="post" enctype="text/plain">
+      <input type="text" name="Name" placeholder="Your name" required>
+      <input type="email" name="Email" placeholder="Your email" required>
+      <textarea name="Message" placeholder="Your message" rows="6" required></textarea>
+      <button type="submit">Send Message</button>
+    </form>
+    <p style="text-align:center;margin-top:15px;font-size:0.9rem;color:#333;">
+      Or email me directly at <a href="mailto:Pietertschopp065@gmail.com">Pietertschopp065@gmail.com</a>
+    </p>
+  </div>
 
-        <p>
-            Building these websites also teaches me new coding skills while letting me explore the subjects I enjoy.
-      Each project is both a learning experience and a way to make studying more fun and interactive.
-          </p>
-      </div>
-
-    <!-- PETS SECTION -->
-    <h2 class="subtitle" id="pets">My Pets</h2>
-    <div class="pets-box">
-        <div class="pet-card">
-            <h3>Leo 🐱</h3>
-            <p>A white cat with a brown and grey coat. Loves to sleep in dark places like under the bed, couch, chair,
-        in the closet, and more!</p>
-          </div>
-        <div class="pet-card">
-            <h3>Cloud 🐱</h3>
-            <p>A white Siamese that likes to sleep and bask in the sunlight. She enjoys drinking water from the tap and
-        loves to snuggle up with her owner!</p>
-          </div>
-        <div class="pet-card">
-            <h3>Lea 🐱</h3>
-            <p>A black cat who loves to sleep under the bed and eat when it is dark or quiet.</p>
-          </div>
-        <div class="pet-card">
-            <h3>Takoda / Coda 🐶</h3>
-            <p>A shepherds mix with a fluffy tail who has arthritis and loves to sleep and not move much!</p>
-          </div>
-        <div class="pet-card">
-            <h3>Cadet 🐶</h3>
-            <p>A grey Cane Corso who loves to sleep and is very affectionate to his owners.</p>
-          </div>
-        <div class="pet-card">
-            <h3>Toby 🐶</h3>
-            <p>An American Bully who is also very sleepy, but when he is awake he goes crazy!</p>
-          </div>
-      </div>
-
-    <!-- CONTACT SECTION -->
-    <h2 class="subtitle" id="contact">Contact Me</h2>
-    <div class="contact-box">
-        <h2>Send Me a Message</h2>
-        <form class="contact-form" action="mailto:Pietertschopp065@gmail.com" method="post" enctype="text/plain">
-            <input type="text" name="Name" placeholder="Your name" required>
-            <input type="email" name="Email" placeholder="Your email" required>
-            <textarea name="Message" placeholder="Your message" rows="6" required></textarea>
-            <button type="submit">Send Message</button>
-          </form>
-        <p style="text-align:center;margin-top:15px;font-size:0.9rem;color:#333;">
-            Or email me directly at <a href="mailto:Pietertschopp065@gmail.com">Pietertschopp065@gmail.com</a>
-          </p>
-      </div>
-
+  
 </body>
-
 </html>

@@ -1,387 +1,157 @@
+<!-- ==========================================================
+Owned by Pieter Tschopp  
+Endo-Prism AI Organization
+
+All rights belong to their respective owners.  
+Endo Prism AI is independent and not affiliated with any companies.
+
+Contributors / Team:
+- Pieter Tschopp
+- Preston Finlay
+- Abigal Finlay
+============================================================== -->
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="/Favicon.png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Endo Prism AI — Smart Web Builder</title>
-    <style>
-        :root {
-            --bg: #f3f4f6;
-            --header: #0b1320;
-            --user: #0078d7;
-            --ai: #e0e0e0;
-            --text: #111;
-            --footer: #fff;
-        }
-
-        body.dark {
-            --bg: #111827;
-            --header: #1f2937;
-            --user: #2563eb;
-            --ai: #374151;
-            --text: #f9fafb;
-            --footer: #1f2937;
-        }
-
-        body {
-            font-family: system-ui, sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            background: var(--bg);
-            color: var(--text);
-            transition: background 0.3s, color 0.3s;
-        }
-
-        header {
-            background: var(--header);
-            color: #fff;
-            text-align: center;
-            padding: 1rem 2rem;
-            position: relative;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        #toggleDark {
-            position: absolute;
-            top: 50%;
-            right: 1.5rem;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: transform 0.2s;
-        }
-
-        #toggleDark:hover {
-            transform: translateY(-50%) scale(1.2);
-        }
-
-        #chat {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1rem 2rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .message {
-            padding: 12px 16px;
-            border-radius: 16px;
-            max-width: 70%;
-            line-height: 1.5;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            opacity: 0;
-            animation: fadeIn 0.25s forwards;
-            position: relative;
-        }
-
-        .user {
-            background: var(--user);
-            color: #fff;
-            align-self: flex-end;
-            border-bottom-right-radius: 4px;
-        }
-
-        .ai {
-            background: var(--ai);
-            color: var(--text);
-            align-self: flex-start;
-            border-bottom-left-radius: 4px;
-        }
-
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-            }
-        }
-
-        footer {
-            display: flex;
-            align-items: center;
-            padding: 10px 1.5rem;
-            background: var(--footer);
-            border-top: 1px solid #ccc;
-            gap: 10px;
-        }
-
-        body.dark footer {
-            border-color: #374151;
-        }
-
-        input {
-            flex: 1;
-            padding: 12px 14px;
-            border-radius: 12px;
-            border: 1px solid #ccc;
-            font-size: 1rem;
-            background: var(--bg);
-            color: var(--text);
-            transition: border-color 0.2s, background 0.2s, color 0.2s;
-        }
-
-        input:focus {
-            border-color: var(--user);
-            outline: none;
-        }
-
-        button {
-            padding: 12px 20px;
-            border: none;
-            background: var(--user);
-            color: #fff;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background 0.2s;
-        }
-
-        button:hover {
-            background: #005fa3;
-        }
-
-        pre {
-            background: #f0f0f0;
-            color: #111;
-            padding: 12px 16px;
-            border-radius: 12px;
-            overflow-x: auto;
-            font-family: monospace;
-            white-space: pre-wrap;
-            border: 1px solid #ccc;
-            position: relative;
-            min-height: 20px;
-        }
-
-        .copy-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(0, 0, 0, 0.15);
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            transition: background 0.2s;
-        }
-
-        .copy-btn:hover {
-            background: rgba(0, 0, 0, 0.3);
-        }
-    </style>
-</head>
-
-<body>
-    <header>
-        Endo Prism AI 🌐
-        <button id="toggleDark" title="Toggle dark mode">🌙</button>
-    </header>
-
-    <div id="chat"></div>
-
-    <footer>
-        <input id="userInput" type="text" placeholder="Ask me to make a website or anything..." />
-        <button id="sendBtn">Send</button>
-    </footer>
-
-    <script>
-const chat = document.getElementById('chat');
-const input = document.getElementById('userInput');
-const sendBtn = document.getElementById('sendBtn');
-const toggleDark = document.getElementById('toggleDark');
-
-// Dark mode toggle
-toggleDark.addEventListener('click', () => document.body.classList.toggle('dark'));
-
-// Memory
-let memory = [];
-let conversationTopics = [];
-
-// Local info.json
-let localKnowledge = {};
-
-async function loadLocalKnowledge() {
-    try {
-        const res = await fetch("info.json");
-        localKnowledge = await res.json();
-    } catch (err) {
-        console.warn("info.json not found");
-    }
-}
-
-loadLocalKnowledge();
-
-// Append message bubble
-function appendMessage(text, sender = 'ai') {
-    const msg = document.createElement('div');
-    msg.className = `message ${sender}`;
-    msg.textContent = text;
-    chat.appendChild(msg);
-    chat.scrollTop = chat.scrollHeight;
-}
-
-// Web search + Wikipedia + knowledge
-async function fetchWebData(topic) {
-    appendMessage(`🔎 Searching the web for info about ${topic}...`);
-
-    // info.json check
-    if (localKnowledge[topic.toLowerCase()]) {
-        return localKnowledge[topic.toLowerCase()];
-    }
-
-    // DuckDuckGo Lite
-    try {
-        const q = encodeURIComponent(topic);
-        const url = `https://duckduckgo.com/lite/?q=${q}`;
-        const res = await fetch(url);
-        const html = await res.text();
-
-        const doc = new DOMParser().parseFromString(html, "text/html");
-        const snippet = doc.querySelector("td.result-snippet");
-
-        if (snippet) {
-            return snippet.textContent.trim() + "\n\n🌐 DuckDuckGo Web Search";
-        }
-    } catch (e) {}
-
-    // Wikipedia fallback
-    try {
-        const q = encodeURIComponent(topic);
-        const wiki = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${q}`);
-        const data = await wiki.json();
-        if (data.extract) return data.extract + "\n\n🔗 Source from Wikipedia.com";
-    } catch (e) {}
-
-    return "❌ No information found.";
-}
-
-// Generate website HTML
-function generateWebsiteHTML(topic, info) {
-return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>${topic} Website</title>
+<link rel="icon" href="/Favicon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Endo Prism AI 🌐</title>
+
 <style>
-body { font-family:sans-serif; margin:20px; background:#fafafa; color:#111; }
-h1 { color:#0078d7; }
-p { max-width:700px; line-height:1.6; white-space:pre-wrap; }
+:root {
+    --bg:#f3f4f6; --header:#0b1320; --user:#0078d7; --ai:#e0e0e0; --text:#111; --footer:#fff;
+}
+body.dark { --bg:#111827; --header:#1f2937; --user:#2563eb; --ai:#374151; --text:#f9fafb; --footer:#1f2937; }
+
+body { margin:0; display:flex; flex-direction:column; height:100vh; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); transition:.3s;}
+header { background:var(--header); color:#fff; text-align:center; padding:1rem 2rem; position:relative; box-shadow:0 2px 8px rgba(0,0,0,0.3); font-size:1.5rem; font-weight:bold; display:flex; justify-content:center; gap:10px; align-items:center; }
+#toggleDark { position:absolute; top:50%; right:1.5rem; transform:translateY(-50%); background:none; border:none; color:#fff; cursor:pointer; font-size:1.2rem; transition:.2s; }
+#toggleDark:hover { transform:translateY(-50%) scale(1.2);}
+#chat { flex:1; overflow-y:auto; padding:1rem 2rem; display:flex; flex-direction:column; gap:.5rem; }
+.message { padding:12px 16px; border-radius:16px; max-width:70%; line-height:1.5; white-space:pre-wrap; opacity:0; animation:fadeIn .25s forwards; }
+.user { background:var(--user); color:#fff; align-self:flex-end; border-bottom-right-radius:4px;}
+.ai { background:var(--ai); color:var(--text); align-self:flex-start; border-bottom-left-radius:4px;}
+@keyframes fadeIn{to{opacity:1}}
+footer { display:flex; align-items:center; padding:10px 1.5rem; background:var(--footer); border-top:1px solid #ccc; gap:10px; }
+body.dark footer { border-color:#374151;}
+input { flex:1; padding:12px 14px; border-radius:12px; border:1px solid #ccc; font-size:1rem; background:var(--bg); color:var(--text);}
+input:focus { border-color:var(--user); outline:none;}
+button { padding:12px 20px; border:none; background:var(--user); color:#fff; border-radius:12px; cursor:pointer; font-size:1rem; transition:.2s; }
+button:hover { background:#005fa3;}
+pre { background:#f0f0f0; padding:12px 16px; border-radius:12px; border:1px solid #ccc; white-space:pre-wrap; position:relative;}
+.copy-btn { position:absolute; top:8px; right:8px; padding:4px 8px; background:rgba(0,0,0,0.15); border-radius:6px; color:white; cursor:pointer;}
+.copy-btn:hover { background:rgba(0,0,0,0.3); }
+
+/* TRAIN UI */
+.train-btn { padding:8px 14px; border:none; background:#0078ff; color:white; cursor:pointer; border-radius:6px; font-size:15px; }
+.train-btn:hover{background:#0064d7;}
+.train-popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:10px; width:300px; box-shadow:0 8px 25px rgba(0,0,0,0.2); display:none; }
+.train-popup input{width:100%; padding:8px; margin:6px 0;}
+.train-popup button{margin-top:10px;width:100%; padding:8px;}
+
+/* MODAL POPUP */
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; opacity:0; animation:fadeInModal 0.3s forwards; }
+.modal-content { background:#fff; margin:10% auto; padding:20px; border-radius:10px; max-width:400px; text-align:center; position:relative; box-shadow:0 8px 25px rgba(0,0,0,0.2); }
+.modal-content h3 { margin-top:0; }
+.modal-content .close { position:absolute; top:10px; right:15px; cursor:pointer; font-size:24px; }
+@keyframes fadeInModal { to {opacity:1;} }
 </style>
 </head>
+
 <body>
-<h1>${topic}</h1>
-<p>${info}</p>
-<\/body>
-<\/html>`;
+<header>
+Endo Prism AI 🌐
+<button id="toggleDark" title="Toggle dark mode">🌙</button>
+<button id="trainBtn" class="train-btn">Train AI</button>
+<button id="infoBtn" class="train-btn" style="background:#28a745;">Info</button>
+</header>
+
+<div id="chat"></div>
+
+<!-- Train Popup -->
+<div class="train-popup" id="trainPopup">
+<h3>Train Endo Prism AI</h3>
+<input id="trainKey" placeholder="If user says..." />
+<input id="trainValue" placeholder="AI should reply..." />
+<button id="trainSave">Save</button>
+<button onclick="document.getElementById('trainPopup').style.display='none'">Close</button>
+</div>
+
+<!-- Info Modal Popup -->
+<div id="myModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h3>About Endo Prism AI</h3>
+    <p>Me[Pieter] had a idea💡, make a AI that might parter with OpenAI. Preston and Abigal were in charge of everything else than</p>
+  </div>
+</div>
+
+<footer>
+<input id="userInput" type="text" placeholder="Ask me anything..." />
+<button id="sendBtn">Send</button>
+</footer>
+
+<script>
+/* Dark Mode */
+const toggleDark = document.getElementById("toggleDark");
+toggleDark.onclick = ()=>document.body.classList.toggle("dark");
+
+/* Train Popup */
+const trainBtn = document.getElementById("trainBtn");
+const trainPopup = document.getElementById("trainPopup");
+const trainKey = document.getElementById("trainKey");
+const trainValue = document.getElementById("trainValue");
+const trainSave = document.getElementById("trainSave");
+let customTraining = JSON.parse(localStorage.getItem("endoTraining")||"{}");
+
+trainBtn.onclick = ()=>trainPopup.style.display="block";
+trainSave.onclick = ()=>{
+    const key=trainKey.value.trim().toLowerCase();
+    const value=trainValue.value.trim();
+    if(!key||!value) return alert("Fill both fields!");
+    customTraining[key]=value;
+    localStorage.setItem("endoTraining",JSON.stringify(customTraining));
+    trainPopup.style.display="none";
+    appendMessage("✅ Training saved!","ai");
+    trainKey.value=""; trainValue.value="";
+};
+
+/* Info Modal */
+const modal = document.getElementById('myModal');
+const infoBtn = document.getElementById('infoBtn');
+const closeBtn = modal.querySelector('.close');
+
+infoBtn.onclick = () => modal.style.display = 'block';
+closeBtn.onclick = () => modal.style.display = 'none';
+window.onclick = (event) => { if(event.target===modal) modal.style.display='none'; };
+
+/* Chat UI */
+const chat = document.getElementById("chat");
+const input = document.getElementById("userInput");
+const sendBtn = document.getElementById("sendBtn");
+
+function appendMessage(text,sender="ai"){
+    const msg=document.createElement("div");
+    msg.className=`message ${sender}`;
+    msg.textContent=text;
+    chat.appendChild(msg);
+    chat.scrollTop=chat.scrollHeight;
 }
 
-// Show code block with copy button
-function showCodeBlock(html) {
-    const wrapper = document.createElement('div');
-    wrapper.style.position = 'relative';
-    wrapper.style.margin = '8px 0';
+/* Initial Greeting */
+appendMessage("👋 Hello! I'm Endo Prism AI. I can search the web, answer questions, and build websites!");
+sendBtn.onclick = ()=>processInput(input.value);
+input.addEventListener("keydown", e => { if(e.key==="Enter") processInput(input.value); });
 
-    const pre = document.createElement('pre');
-    pre.textContent = html;
-    wrapper.appendChild(pre);
-
-    const copyBtn = document.createElement('button');
-    copyBtn.textContent = 'Copy';
-    copyBtn.className = 'copy-btn';
-    copyBtn.style.position = 'absolute';
-    copyBtn.style.top = '8px';
-    copyBtn.style.right = '8px';
-    copyBtn.onclick = () => {
-        navigator.clipboard.writeText(html).then(() => {
-            copyBtn.textContent = 'Copied!';
-            setTimeout(() => copyBtn.textContent = 'Copy', 1500);
-        });
-    };
-    wrapper.appendChild(copyBtn);
-
-    chat.appendChild(wrapper);
-    chat.scrollTop = chat.scrollHeight;
+/* AI Handler */
+async function processInput(raw){
+    const text=raw.trim(); if(!text) return;
+    appendMessage(text,"user"); input.value="";
+    const lower=text.toLowerCase();
+    if(customTraining[lower]) { appendMessage(customTraining[lower],"ai"); return; }
+    appendMessage(`🤖 I heard: "${text}"`,"ai"); // Placeholder reply
 }
-
-// AI Logic
-function getAIReply(text) {
-    const lower = text.toLowerCase().trim();
-
-    if (/(hello|hi|hey)/i.test(lower)) return "Hey! 👋 How's your day going?";
-    if (/how are you/i.test(lower)) return "I'm doing great — ready to help!";
-    if (/bye|goodbye/i.test(lower)) return "Goodbye! 👋";
-
-    const trivial = ["ok", "yes", "no", "good", "fine", "thanks"];
-    if (trivial.includes(lower)) return "Got it! Tell me more. 🙂";
-
-    const words = lower.split(/\s+/).filter(w => w.length > 2 && !trivial.includes(w));
-    if (words.length) conversationTopics.push(words.join(" "));
-
-    if (conversationTopics.length > 0) {
-        const last = conversationTopics[conversationTopics.length - 1];
-        return `That’s interesting! Want me to make a website about “${last}”?`;
-    }
-
-    return "Interesting! I can make a website about it if you want.";
-}
-
-// Process input
-async function processInput(raw) {
-    const text = raw.trim();
-    if (!text) return;
-
-    appendMessage(text, 'user');
-    input.value = '';
-
-    // info.json auto-response
-    const key = Object.keys(localKnowledge).find(k =>
-        text.toLowerCase().includes(k.toLowerCase())
-    );
-
-    if (key) {
-        appendMessage("📘 From local knowledge:");
-        appendMessage(localKnowledge[key]);
-        return;
-    }
-
-    // Website generation
-    const match = text.match(/make a website about (.+)/i);
-    if (match) {
-        const topic = match[1];
-        const info = await fetchWebData(topic);
-        const html = generateWebsiteHTML(topic, info);
-        appendMessage("✅ Website code generated below:");
-        showCodeBlock(html);
-        return;
-    }
-
-    // Normal AI chat
-    appendMessage(getAIReply(text));
-}
-
-// Event listeners
-sendBtn.onclick = () => processInput(input.value);
-input.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendBtn.click();
-    }
-});
-
-// Greeting
-appendMessage("👋 Hello! I'm Endo Prism AI. Chat with me or ask me to make a website about something!");
-    </script>
-
+</script>
 </body>
 </html>
