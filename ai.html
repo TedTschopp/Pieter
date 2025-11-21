@@ -4,63 +4,178 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Endo Prism AI — Ultimate</title>
-  <link rel="icon" href="/Favicon.png" />
+  <link rel="icon" href="/Favicon.png">
   <style>
-    :root{
-      --bg:#f4f6f8; --surface:#ffffff; --muted:#6b7280; --accent:#0066d6; --accent-2:#7c3aed; --ai:#002dc0; --user:#dbeafe; --glass: rgba(255,255,255,0.6);
-    }
-    body.dark{
-      --bg:#0b1220; --surface:#0f1724; --muted:#9ca3af; --accent:#2b6ef6; --accent-2:#8b5cf6; --ai:#0b1227; --user:#05203b; --glass: rgba(255,255,255,0.03);
-      color:var(--muted)
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background:linear-gradient(180deg,var(--bg), #e9eef7); color:#0f1724; display:flex; flex-direction:column; gap:0; min-height:100vh;
-      transition:background .25s, color .25s
-    }
-    header{display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:var(--surface); border-bottom:1px solid rgba(15,23,34,0.06); box-shadow:0 6px 30px rgba(2,6,23,0.04)}
-    .brand{display:flex; gap:12px; align-items:center}
-    .logo{width:44px; height:44px; display:grid; place-items:center; border-radius:10px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:white; font-weight:700}
-    .title{font-size:1.05rem; font-weight:700}
-    .subtitle{font-size:.8rem; color:var(--muted)}
-    .controls{display:flex; gap:8px; align-items:center}
-    button.icon{background:transparent; border:1px solid rgba(15,23,34,0.06); padding:8px 10px; border-radius:8px; cursor:pointer}
-    button.primary{background:var(--accent); color:#fff; border:none; padding:8px 12px; border-radius:10px}
+    :root {
+  --bg:#f4f6f8;
+  --surface:#ffffff;
+  --muted:#6b7280;
+  --accent:#0066d6;
+  --accent-2:#7c3aed;
+  --ai:#002dc0;
+  --user:#083269;
+  --glass: rgba(255,255,255,0.6);
+}
 
-    main{flex:1; display:grid; grid-template-columns:360px 1fr 420px; gap:18px; padding:18px}
+body.dark {
+  --bg:#0b1220;
+  --surface:#0f1724;
+  --muted:#9ca3af;
+  --accent:#2b6ef6;
+  --accent-2:#8b5cf6;
+  --ai:#0b1227;
+  --user:#05203b;
+  --glass: rgba(255,255,255,0.03);
+  color: var(--muted);
+}
 
-    /* Left column - Knowledge & memory */
-    .panel{background:var(--surface); border-radius:12px; padding:14px; box-shadow:0 6px 18px rgba(2,6,23,0.03); overflow:auto}
-    .panel h3{margin:0 0 10px 0}
-    .info-list{display:flex; flex-direction:column; gap:8px}
-    .info-item{display:flex; justify-content:space-between; gap:8px; padding:10px; border-radius:8px; background:var(--glass)}
-    .info-item small{color:var(--muted)}
-    .mem-list{display:flex; flex-direction:column; gap:8px; max-height:320px; overflow:auto}
+* {
+  box-sizing: border-box;
+}
 
-    /* center - chat */
-    .chat-window{display:flex; flex-direction:column; gap:10px; height:calc(100vh - 160px)}
-    .messages{flex:1; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:10px}
-    .msg{max-width:78%; padding:12px 14px; border-radius:14px; line-height:1.45; white-space:pre-wrap}
-    .msg.user{align-self:flex-end; background:var(--user); color:var(--surface); border-bottom-right-radius:6px}
-    .msg.ai{align-self:flex-start; background:var(--ai); color:var(--surface); border-bottom-left-radius:6px}
-    .meta{font-size:.78rem; color:var(--muted); margin-bottom:6px}
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: linear-gradient(180deg, var(--bg), #e9eef7);
+  color: #0f1724;
+  display: flex;
+  flex-direction: column;
+}
 
-    .composer{display:flex; gap:10px; align-items:center; padding:10px; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.5)); border:1px solid rgba(15,23,34,0.04)}
-    .composer input, .composer textarea{flex:1; padding:12px; border-radius:10px; border:1px solid rgba(15,23,34,0.06); background:transparent}
-    .composer textarea{min-height:64px; resize:vertical}
-    .quick-actions{display:flex; gap:6px}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid rgba(15,23,34,0.06);
+  box-shadow: 0 6px 30px rgba(2,6,23,0.04);
+}
 
-    /* right panel - tools */
-    .tools{display:flex; flex-direction:column; gap:12px}
-    .tool{padding:12px; border-radius:10px; background:var(--surface)}
+.brand { display: flex; gap: 12px; align-items: center; }
+.logo { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; font-weight: 700; }
+.title { font-size: 1.05rem; font-weight: 700; }
+.subtitle { font-size: .8rem; color: var(--muted); }
+.controls { display: flex; gap: 8px; align-items: center; }
+button.icon { background: transparent; border: 1px solid rgba(15,23,34,0.06); padding: 8px 10px; border-radius: 8px; cursor: pointer; }
+button.primary { background: var(--accent); color: #fff; border: none; padding: 8px 12px; border-radius: 10px; }
 
-    pre.code{background:#0b1220; color:#dbeafe; padding:12px; border-radius:8px; overflow:auto}
+/* MAIN GRID */
+main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr; /* proportional widths */
+  gap: 12px;
+  padding: 12px;
+  width: 100%;
+  max-width: 100%;
+}
 
-    footer{padding:12px 18px; text-align:center; font-size:.85rem; color:var(--muted); background:transparent}
+/* Adjust proportions when left panel is hidden */
+aside.panel:first-child {
+  display: none; /* hidden by default */
+}
 
-    @media (max-width:1100px){main{grid-template-columns:1fr} .tools{display:none} .panel{display:none}}
+/* All panels styling */
+.panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 6px 18px rgba(2,6,23,0.03);
+  overflow: auto;
+  transition: all 0.3s ease;
+}
+
+.panel h3 { margin: 0 0 10px 0; }
+.info-list { display: flex; flex-direction: column; gap: 8px; }
+.info-item { display: flex; justify-content: space-between; gap: 8px; padding: 10px; border-radius: 8px; background: var(--glass); }
+.info-item small { color: var(--muted); }
+.mem-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow: auto; }
+
+/* CHAT STYLING */
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: calc(100vh - 160px);
+}
+
+.messages {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msg {
+  max-width: 78%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.msg.user { align-self: flex-end; background: var(--user); color: var(--surface); border-bottom-right-radius: 6px; }
+.msg.ai { align-self: flex-start; background: var(--ai); color: var(--surface); border-bottom-left-radius: 6px; }
+
+.meta { font-size: .78rem; color: var(--muted); margin-bottom: 6px; }
+
+.composer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0.5));
+  border: 1px solid rgba(15,23,34,0.04);
+}
+
+.composer input,
+.composer textarea {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(15,23,34,0.06);
+  background: transparent;
+}
+
+.composer textarea { min-height: 64px; resize: vertical; }
+.quick-actions { display: flex; gap: 6px; }
+
+/* RIGHT PANEL TOOLS */
+.tools {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tool { padding: 12px; border-radius: 10px; background: var(--surface); }
+
+pre.code { background: #0b1220; color: #dbeafe; padding: 12px; border-radius: 8px; overflow: auto; }
+
+footer {
+  padding: 12px 18px;
+  text-align: center;
+  font-size: .85rem;
+  color: var(--muted);
+  background: transparent;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1100px) {
+  main {
+    grid-template-columns: 1fr; /* stack vertically */
+  }
+  .tools { display: none; }
+  .panel { display: none; }
+}
+
+
   </style>
 </head>
 <body>
@@ -96,7 +211,13 @@
         <button class="icon" data-prompt="make a website about electric cars">Website: Electric cars</button>
         <button class="icon" data-prompt="search climate change summary">Search: Climate</button>
         <button class="icon" data-prompt="tell me about sydney opera house">Define: Sydney</button>
+        <br>
+        <br>
       </div>
+      <h3>Knowledge</h3>
+<div id="knowledgeArea">
+  <small style="color:var(--muted)">Loading local knowledge…</small>
+</div>
     </aside>
 
     <section class="chat-window panel">
@@ -250,26 +371,43 @@
   // small escape
   function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
 
-  // Web search using Wikipedia REST first, then fallback text
-  async function webSearch(query){
-    appendMessage('🔎 Searching web for: '+query,'ai');
-    // try Wikipedia REST API (CORS-enabled)
-    try{
-      const q = encodeURIComponent(query.trim());
-      const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${q}`;
-      const res = await fetch(url);
-      if(res.ok){ const data = await res.json(); if(data.extract) return `📘 Wikipedia summary for ${data.title}:\n\n${data.extract}`; }
-    }catch(e){ console.warn('wiki failed', e) }
+  // Web search using local knowledge first, then Wikipedia REST
+async function webSearch(query){
+  const key = query.toLowerCase();
 
-    // fallback: DuckDuckGo instant answer (JSONP-like but their API may be limited). We'll try their HTML endpoint as a last resort but most scraping requires server proxy because of CORS.
-    try{
-      const ddg = `https://api.allorigins.win/raw?url=https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`;
-      const r2 = await fetch(ddg);
-      if(r2.ok){ const j = await r2.json(); if(j.AbstractText) return `🔍 DuckDuckGo: ${j.AbstractText}`; }
-    }catch(e){ console.warn('ddg failed', e) }
-
-    return '❌ No web results available from browser — consider running a small server proxy or put more data into info.json.';
+  // 1️⃣ Check local knowledge
+  const local = findLocal(key);
+  if(local) {
+    const out = `💾 Local knowledge for "${query}":\n\n${local.summary || JSON.stringify(local)}`;
+    appendMessage(out,'ai','local');
+    return out;
   }
+
+  appendMessage(`🔎 Searching web for: ${query}`,'ai');
+
+  // 2️⃣ Wikipedia REST API (CORS-enabled)
+  try{
+    const q = encodeURIComponent(query.trim());
+    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${q}`;
+    const res = await fetch(url);
+    if(res.ok){
+      const data = await res.json();
+      if(data.extract){
+        const out = `📘 Wikipedia summary for "${data.title}":\n\n${data.extract}`;
+        appendMessage(out,'ai','search result');
+        return out;
+      }
+    }
+  }catch(e){
+    console.warn('Wikipedia fetch failed:', e);
+  }
+
+  // 3️⃣ Fallback
+  const fallback = `❌ No information found for "${query}". Try a different search or add it to info.json.`;
+  appendMessage(fallback,'ai','fallback');
+  return fallback;
+}
+
 
   // Handle AI-like response (simple local heuristics + webSearch)
   async function handleAI(text){
@@ -303,8 +441,8 @@
       default: {
         // conversational fallback — respond with helpful nudges
         const local = findLocal(it.q);
-        if(local){ const o = `💾 Local knowledge found for "${it.q}":\n\n${local.summary || JSON.stringify(local)}`; appendMessage(o,'ai','local'); return o; }
-        appendMessage('Hmm — I can web-search, build a website, or save to memory. Try "search X" or "make a website about Y".','ai');
+        if(local){ const o = `${local.summary || JSON.stringify(local)}`; appendMessage(o,'ai','local'); return o; }
+        appendMessage('Hmm - I have not found that in my database❗️ If this happens again, use the search feature 🔎  "search {topic}"','ai');
         return null;
       }
     }
