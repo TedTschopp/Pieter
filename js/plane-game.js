@@ -24,15 +24,15 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Global variables
   let keys = {};
-  let throttle = 0;
   let crashed = false;
   let spectateMode = false;
   let hasStarted = false;
+  let throttle = 0;
 
   // Plane definitions
   const planesData = {
-    jet: { src: "/img/plane.png", speed: 1800, scale: 1.7 }, // Jet airliner
-    fighter: { src: "/img/fighter.png", speed: 3218, scale: 1.7 }, // Fighter jet
+    jet: { src: "/img/plane.png", speed: 1800, scale: 1.7 },
+    fighter: { src: "/img/fighter.png", speed: 3218, scale: 1.7 },
   };
 
   let planeImg = new Image();
@@ -46,7 +46,7 @@ window.addEventListener("DOMContentLoaded", () => {
     planeImg.src = data.src;
     plane = {
       x: 400,
-      y: canvas.height - 120 - (40 * data.scale) / 2 - startAlt * 0.05,
+      y: canvas.height - 120 - startAlt * 0.05,
       w: 80 * data.scale,
       h: 40 * data.scale,
       vx: 0,
@@ -62,15 +62,15 @@ window.addEventListener("DOMContentLoaded", () => {
   function initBuildings() {
     buildings = [];
     for (let i = 0; i < 50; i++) {
-      let w = 60 + Math.random() * 100;
-      let h = 100 + Math.random() * 150;
-      let x = i * 400 + Math.random() * 100;
-      let y = canvas.height - 120;
+      const w = 60 + Math.random() * 100;
+      const h = 100 + Math.random() * 150;
+      const x = i * 400 + Math.random() * 100;
+      const y = canvas.height - 120;
       buildings.push({ x, y, w, h });
     }
   }
 
-  // Start flying
+  // Start flight
   startFlightBtn.addEventListener("click", () => {
     const startAlt = parseInt(startupAltInput.value) || 1200;
     initPlane(startupPlaneSelect.value, startAlt);
@@ -79,12 +79,16 @@ window.addEventListener("DOMContentLoaded", () => {
     hasStarted = true;
   });
 
-  // Options & Controls toggle
+  // Options panel toggle
   optionsBtn.addEventListener("click", () => {
     optionsPanel.style.display =
       optionsPanel.style.display === "block" ? "none" : "block";
   });
-  planeSelect.addEventListener("change", () => initPlane(planeSelect.value));
+
+  planeSelect.addEventListener("change", () => {
+    const currentAlt = (canvas.height - 120 - plane.y) * 20;
+    initPlane(planeSelect.value, currentAlt);
+  });
 
   // Info box toggle
   hideBtn.addEventListener("click", () => {
@@ -99,19 +103,16 @@ window.addEventListener("DOMContentLoaded", () => {
   // Keyboard controls
   window.addEventListener("keydown", (e) => {
     keys[e.key.toLowerCase()] = true;
-    if (e.key.toLowerCase() === "f")
-      unlimitedFuelCheck.checked = !unlimitedFuelCheck.checked;
+    if (e.key.toLowerCase() === "f") unlimitedFuelCheck.checked = !unlimitedFuelCheck.checked;
   });
   window.addEventListener("keyup", (e) => (keys[e.key.toLowerCase()] = false));
 
-  // Crash
   function triggerCrash() {
     if (crashed || !hasStarted) return;
     crashed = true;
     crashPopup.classList.add("visible");
     spectateMode = false;
-    plane.vx = 0;
-    plane.vy = 0;
+    plane.vx = plane.vy = 0;
   }
 
   function resetFlight() {
@@ -131,7 +132,6 @@ window.addEventListener("DOMContentLoaded", () => {
     crashPopup.classList.remove("visible");
   });
 
-  // Update
   function update() {
     if (!planeImg.complete) return requestAnimationFrame(update);
 
@@ -144,15 +144,13 @@ window.addEventListener("DOMContentLoaded", () => {
     throttle = 0;
     if (keys["a"]) roll = -1;
     if (keys["d"]) roll = 1;
-    if (keys["w"] && (plane.fuel > 0 || unlimitedFuelCheck.checked))
-      throttle = 1;
+    if (keys["w"] && (plane.fuel > 0 || unlimitedFuelCheck.checked)) throttle = 1;
 
     // Autopilot
     if (autopilotCheck.checked && !crashed) {
-      const altTarget =
-        parseInt(document.getElementById("altSlider")?.value) || 2000;
+      const altTarget = parseInt(document.getElementById("altSlider")?.value) || 2000;
       const targetY = canvas.height - 120 - altTarget * 0.05;
-      if (plane.y > targetY) plane.vy -= 0.15;
+      plane.vy += (targetY - plane.y) * 0.002; // Smooth autopilot
     }
 
     // Physics
@@ -160,32 +158,27 @@ window.addEventListener("DOMContentLoaded", () => {
     plane.vx += Math.cos(plane.angle) * throttle * 0.1;
     plane.vy += Math.sin(plane.angle) * throttle * 0.1 + 0.05;
 
-    // Fuel
-    if (!unlimitedFuelCheck.checked && plane.fuel > 0)
-      plane.fuel -= throttle * 0.002;
+    // Fuel consumption
+    if (!unlimitedFuelCheck.checked && plane.fuel > 0) plane.fuel -= throttle * 0.002;
     if (!unlimitedFuelCheck.checked && plane.fuel <= 0) throttle = 0;
 
+    // Move plane
     plane.x += plane.vx;
     plane.y += plane.vy;
 
     // Ground collision
-    if (
-      hasStarted &&
-      !noCrashCheck.checked &&
-      !crashed &&
-      plane.y + plane.h / 2 > canvas.height - 120
-    ) {
+    if (hasStarted && !noCrashCheck.checked && !crashed && plane.y + plane.h / 2 > canvas.height - 120) {
       plane.y = canvas.height - 120 - plane.h / 2;
       triggerCrash();
     }
 
-    // Randomly generate more buildings as player moves
+    // Dynamic building generation
     const lastX = Math.max(...buildings.map((b) => b.x));
     if (plane.x + 800 > lastX) {
-      let w = 60 + Math.random() * 100;
-      let h = 100 + Math.random() * 150;
-      let x = lastX + 300 + Math.random() * 100;
-      let y = canvas.height - 120;
+      const w = 60 + Math.random() * 100;
+      const h = 100 + Math.random() * 150;
+      const x = lastX + 300 + Math.random() * 100;
+      const y = canvas.height - 120;
       buildings.push({ x, y, w, h });
     }
 
@@ -193,11 +186,10 @@ window.addEventListener("DOMContentLoaded", () => {
     requestAnimationFrame(update);
   }
 
-  // Draw
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Sky
+    // Sky gradient
     const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
     sky.addColorStop(0, "#6ec6ff");
     sky.addColorStop(1, "#e3f2fd");
@@ -231,7 +223,7 @@ window.addEventListener("DOMContentLoaded", () => {
     ctx.drawImage(planeImg, -plane.w / 2, -plane.h / 2, plane.w, plane.h);
     ctx.restore();
 
-    // Throttle & Fuel
+    // Throttle & Fuel UI
     ctx.fillStyle = "rgba(0,0,0,0.5)";
     ctx.fillRect(canvas.width - 220, canvas.height - 100, 200, 100);
     ctx.fillStyle = "white";
@@ -245,9 +237,9 @@ window.addEventListener("DOMContentLoaded", () => {
     ctx.fillStyle = plane.fuel > 0 ? "orange" : "red";
     ctx.fillRect(canvas.width - 200, canvas.height - 35, 160 * plane.fuel, 10);
 
-    // VS, Speed, Alt (American units)
+    // Flight info
     const speedMPH = Math.sqrt(plane.vx ** 2 + plane.vy ** 2) * 200 * 0.621371;
-    const vsFPM = plane.vy * -200 * 196.85; // Rough conversion to feet/min
+    const vsFPM = -plane.vy * 200 * 196.85;
     const altFT = (canvas.height - 120 - plane.y - plane.h / 2) * 20;
     ctx.fillStyle = "white";
     ctx.fillText(`Speed: ${speedMPH.toFixed(0)} MPH`, 20, 30);
