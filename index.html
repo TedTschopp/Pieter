@@ -11,269 +11,258 @@
   <!-- Base URL -->
   <base href="https://pieter.tschopp.org/">
 
-  <!-- Favicon -->
+
   <link rel="icon" href="/Favicon.png" type="image/png">
 
   <title>Pieter's Website</title>
 
   <style>
-    /* =========================
-       GLOBAL RESET
-    ========================= */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+     :root { 
+  --bg: linear-gradient(to bottom, #ffffff, #f3f3f3);
+  --card-bg: #ffffff;
+  --text-dark: #222;
+  --text-light: #555;
+  --accent: #0066cc;
+}
 
-    html {
-      scroll-behavior: smooth;
-    }
+/* =========================
+  GLOBAL RESET
+========================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom, #008bff, #1fff);
-      color: #003366;
-      line-height: 1.6;
-    }
+html {
+  scroll-behavior: smooth;
+}
 
-    /* =========================
-       NAV BAR
-    ========================= */
-    .main-nav {
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px 40px;
-      background: linear-gradient(90deg, #004080, #007bff);
-      color: white;
-      border-radius: 0 0 15px 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      transition: background 10s ease, box-shadow 0.7s ease;
-    }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--bg);
+  color: var(--text-dark);
+  line-height: 1.6;
+}
 
-    .main-nav:hover {
-      background: linear-gradient(90deg, #0056b3, #57a8ff);
-      box-shadow: 0 6px 15px rgba(0,0,0,0.35);
-    }
+/* =========================
+   NAV BAR
+========================= */
+.main-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(5px);
+  border-bottom: 1px solid #dcdcdc;
+}
 
-    .main-nav .nav-brand {
-      font-size: 1.6rem;
-      font-weight: bold;
-    }
+.main-nav .nav-brand {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: var(--text-dark);
+}
 
-    .navheading {
-      font-size: 1.6rem;
-      font-weight: 630;
-    }
+.navheading {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
 
-    .main-nav .nav-links {
-      list-style: none;
-      display: flex;
-      gap: 25px;
-    }
+.main-nav .nav-links {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+}
 
-    .main-nav .nav-links li a {
-      text-decoration: none;
-      color: white;
-      font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 8px;
-      transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
-    }
+.main-nav .nav-links li a {
+  text-decoration: none;
+  color: var(--text-dark);
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: 0.3s ease;
+}
 
-    .main-nav .nav-links li a:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: translateY(-2px);
-    }
+.main-nav .nav-links li a:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
 
-    .main-nav .nav-links li a.active {
-      background: rgba(255, 255, 255, 0.3);
-      color: #fff;
-    }
+/* =========================
+   PAGE TITLE
+========================= */
+h1.title {
+  text-align: center;
+  font-size: 3rem;
+  margin: 40px 0 20px 0;
+  color: var(--text-dark);
+}
 
-    /* =========================
-       PAGE TITLE
-    ========================= */
-    h1.title {
-      text-align: center;
-      font-size: 3rem;
-      margin: 40px 0 20px 0;
-    }
+h2.subtitle {
+  text-align: center;
+  font-size: 2rem;
+  margin: 20px 0 30px 0;
+  color: var(--text-light);
+}
 
-    h2.subtitle {
-      text-align: center;
-      font-size: 2rem;
-      margin: 20px 0 30px 0;
-      color: #004080;
-    }
+/* =========================
+   BOX SECTIONS
+========================= */
+.box {
+  max-width: 900px;
+  background-color: var(--card-bg);
+  color: var(--text-dark);
+  border-radius: 15px;
+  padding: 30px;
+  margin: 0 auto 60px auto;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
-    /* =========================
-       BOX SECTIONS
-    ========================= */
-    .box {
-      max-width: 900px;
-      background-color: #007bff;
-      color: white;
-      border-radius: 15px;
-      padding: 30px;
-      margin: 0 auto 60px auto;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      overflow: hidden;
-    }
+.box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.23);
+}
 
-    .box:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-    }
+/* IMAGES */
+.leftimg, .imgright {
+  width: 300px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+  margin-bottom: 10px;
+}
 
-    .leftimg, .imgright {
-      width: 300px;
-      height: 200px;
-      object-fit: cover;
-      border-radius: 15px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.25);
-      margin-bottom: 10px;
-    }
+.leftimg { float: left; margin-right: 20px; }
+.imgright { float: right; margin-left: 20px; }
 
-    .leftimg { float: left; margin-right: 20px; }
-    .imgright { float: right; margin-left: 20px; }
+/* =========================
+   WEBSITE BUTTONS
+========================= */
+.websites {
+  border-radius: 9px;
+  border: 1px solid #cccccc;
+  color: #444;
+  background: white;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
 
-    /* =========================
-       LINKS / BUTTONS
-    ========================= */
-    .websites {
-      border-radius: 9px;
-      border-color: #003366;
-      color: #007bff;
-      background: white;
-      padding: 8px 12px;
-      cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
+.websites:hover {
+  transform: scale(1.07);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.25);
+}
 
-    .websites:hover {
-      transform: scale(1.1);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    }
+/* =========================
+   PETS SECTION
+========================= */
+.pets-box {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 30px;
+  padding: 20px;
+  margin-bottom: 50px;
+  background-color: #f5f5f5;
+  border-radius: 15px;
+}
 
-    /* =========================
-       PETS SECTION
-    ========================= */
-    .pets-box {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 30px;
-      padding: 20px;
-      margin-bottom: 50px;
-      background-color: #007bff;
-      border-radius: 15px;
-    }
+.pet-card {
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  width: 280px;
+  padding: 20px;
+  text-align: center;
+  transition: 0.3s ease;
+  color: var(--text-dark);
+}
 
-    .pet-card {
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      width: 280px;
-      padding: 20px;
-      text-align: center;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
+.pet-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+}
 
-    .pet-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    }
+.pet-card img {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
 
-    .pet-card img {
-      width: 100%;
-      border-radius: 12px;
-      margin-bottom: 15px;
-    }
+/* =========================
+   CONTACT FORM
+========================= */
+.contact-box {
+  max-width: 700px;
+  margin: 0 auto 60px auto;
+  background: #ffffff;
+  color: var(--text-dark);
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
 
-    /* =========================
-       CONTACT / SUPPORT SECTION
-    ========================= */
-    .contact-box {
-      max-width: 700px;
-      margin: 0 auto 60px auto;
-      background: #007bff;
-      color: #003366;
-      border-radius: 15px;
-      padding: 30px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
+.contact-box h2 {
+  text-align: center;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
 
-    .contact-box:hover {
-      transform: translateY(-10px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    }
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #aacfff;
+  border-radius: 10px;
+  font-size: 1rem;
+}
 
-    .contact-box h2 {
-      text-align: center;
-      color: #004080;
-      margin-bottom: 20px;
-    }
+.contact-form button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
 
-    .contact-form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
+.contact-form button:hover {
+  background: #004c99;
+  transform: scale(1.03);
+}
 
-    .contact-form input,
-    .contact-form textarea {
-      width: 100%;
-      padding: 10px;
-      border: 2px solid #007bff;
-      border-radius: 10px;
-      font-size: 1rem;
-    }
+/* Email link */
+.contact-box p a {
+  color: var(--accent);
+  font-weight: bold;
+  text-decoration: underline;
+}
 
-    .contact-form button {
-      background: #57a8ff;
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: 0.3s ease;
-    }
+.contact-box p a:hover {
+  color: #004c99;
+}
 
-    .contact-form button:hover {
-      background: #0056b3;
-      transform: scale(1.03);
-    }
+/* =========================
+   RESPONSIVE IMAGES
+========================= */
+@media (max-width: 768px) {
+  .leftimg, .imgright {
+    float: none;
+    display: block;
+    margin: 0 auto 20px;
+    width: 100%;
+    height: auto;
+  }
+}
 
-    .contact-box p a {
-      color: #003366;
-      font-weight: bold;
-      text-decoration: underline;
-    }
-
-    .contact-box p a:hover {
-      color: #57a8ff;
-    }
-
-    /* =========================
-       RESPONSIVE IMAGES
-    ========================= */
-    @media (max-width: 768px) {
-      .leftimg, .imgright {
-        float: none;
-        display: block;
-        margin: 0 auto 20px;
-        width: 100%;
-        height: auto;
-      }
-    }
   </style>
 </head>
 <body>
@@ -294,8 +283,8 @@
   <!-- ABOUT SECTION -->
   <h1 class="title">Home-Page</h1>
   <div id="about" class="box">
-    <img class="leftimg" src="/Imgs/Leoinwild.JPG" alt="Leo in the wild">
-    <img class="imgright" src="/Img/Cloud.jpeg" alt="White cat going to sleep">
+    <img class="leftimg" src="/img/Leoinwild.JPG" alt="Leo in the wild">
+    <img class="imgright" src="/img/Cloud.jpeg" alt="White cat going to sleep">
     <p>
       Hey! I’m a student at Royal Oaks School, and I’ve always been someone who loves learning new things and thinking about how they work. Ever since I was little, I’ve been fascinated by airplanes — the sound of engines, the feeling of takeoff, and the idea of traveling across the world. That’s what inspired my dream of becoming a pilot one day. Flying feels like freedom to me, and I’d love to explore the skies while visiting new places and meeting people from different parts of the world.
     </p>
@@ -310,7 +299,7 @@
   <!-- WHY I MADE THESE WEBSITES SECTION -->
   <h2 class="subtitle" id="why-websites">Why I Made These Websites</h2>
   <div class="box">
-    <img class="leftimg" src="/Imgs/VScodeimg.png" alt="Screenshot of code">
+    <img class="leftimg" src="/img/VScodeimg.png" alt="Screenshot of code">
     <p>
       I created these websites mainly for fun and to learn more about interesting topics. I love exploring things like airplanes, wildlife, or other subjects I’m curious about, and building a website is a great way to share that knowledge.
     </p>
@@ -321,6 +310,38 @@
       Building these websites also teaches me new coding skills while letting me explore the subjects I enjoy. Each project is both a learning experience and a way to make studying more fun and interactive.
     </p>
   </div>
+  <!-- ARTICLE SECTION -->
+<h2 class="subtitle" id="article">Featured Article</h2>
+<div class="box">
+  <img class="leftimg" src="/ChatGPT_VS_Gemini_Thumbnail.png" alt="Article Thumbnail">
+
+  <h2 style="margin-bottom:10px;">ChatGPT VS Gemini</h2>
+
+  <p>
+    Dive into a detailed comparison between ChatGPT and Google Gemini — covering speed,
+    intelligence, creativity, and real-world usefulness. A full breakdown of strengths,
+    weaknesses, and which one is better for different tasks.
+  </p>
+
+  <a href="https://pieter.tschopp.org/ChatGPT_VS_Gemini"
+     style="
+       display:inline-block;
+       margin-top:15px;
+       padding:10px 18px;
+       background:var(--accent);
+       color:white;
+       border-radius:10px;
+       text-decoration:none;
+       font-weight:600;
+       transition:0.3s ease;
+     "
+     onmouseover="this.style.background='#004c99'"
+     onmouseout="this.style.background='var(--accent)'">
+     Read Full Article →
+  </a>
+
+  <div style="clear: both;"></div>
+</div>
 
   <!-- MY WEBSITE LINKS SECTION -->
   <section id="mylinks" class="box">      
