@@ -47,29 +47,50 @@ body {
   letter-spacing: 0.5px;
 
 }
-/* HERO IMAGE STYLING */
+
+/* =========================
+   HERO IMAGE – Upgraded
+========================= */
+
 .hero {
   position: relative;
   width: 100%;
-  height: 90vh; /* almost full screen */
+  height: 90vh;
   overflow: hidden;
   border-radius: 0 0 20px 20px;
+  filter: drop-shadow(0 5px 20px rgba(0,0,0,0.22));
 }
 
+/* Image with clarity + color depth + floating animation */
 .hero img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
-  transition: transform 0.5s ease;
+
+  /* Makes image look higher-quality */
+  filter: contrast(1.12) saturate(1.12) brightness(1.04);
+
+  /* Smooth zoom & animation */
+  transition: transform 0.6s ease, filter 0.6s ease;
+
+  /* Floating cinematic motion */
+  animation: floatHero 6s ease-in-out infinite alternate;
 }
 
-/* subtle zoom effect on hover */
+/* Hover zoom (kept from your original) */
 .hero:hover img {
-  transform: scale(1.05);
+  transform: scale(1.07);
+  filter: contrast(1.18) saturate(1.18) brightness(1.08);
 }
 
-/* gradient overlay for better text readability */
+/* Floating animation keyframes */
+@keyframes floatHero {
+  0% { transform: scale(1.03) translateY(0); }
+  100% { transform: scale(1.14) translateY(-14px); }
+}
+
+/* Gradient overlay for readability */
 .hero::after {
   content: '';
   position: absolute;
@@ -77,10 +98,15 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.3));
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.2),
+    rgba(0,0,0,0.35)
+  );
+  pointer-events: none;
 }
 
-/* Hero text overlay */
+/* Glassmorphism text panel */
 .hero-text {
   position: absolute;
   top: 50%;
@@ -88,9 +114,18 @@ body {
   transform: translate(-50%, -50%);
   color: white;
   text-align: center;
+
+  /* new glass effect */
+  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.15);
+  padding: 25px 35px;
+  border-radius: 18px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.25);
+
   text-shadow: 0 3px 10px rgba(0,0,0,0.5);
 }
 
+/* Text sizes (unchanged) */
 .hero-text h1 {
   font-size: 3rem;
   margin-bottom: 10px;
@@ -98,11 +133,15 @@ body {
 
 .hero-text p {
   font-size: 1.5rem;
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .hero-text {
+    padding: 18px 24px;
+    border-radius: 15px;
+  }
   .hero-text h1 {
     font-size: 2rem;
   }
