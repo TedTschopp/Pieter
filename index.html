@@ -7,12 +7,13 @@
   <meta name="description" content="Personal website of Pieter W.C. Tschopp (PWCT) — student, aspiring pilot, and computer science enthusiast. Explore my projects, interests, and pets!">
   <meta name="author" content="Pieter William Conijn Tschopp">
   <meta name="keywords" content="Pieter Tschopp, PWCT, Royal Oaks School, student, pilot, CS, computer science, website projects">
-  
-  
+  <meta name="robots" content="index, follow">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-
+  <!-- Favicon -->
   <link rel="icon" href="/img/Favicon.png" type="image/png">
 
+  <!-- Title  -->
   <title>Pieter's Website</title>
 
   <style>
@@ -35,6 +36,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -42,6 +44,71 @@ body {
   background: var(--bg);
   color: var(--text-dark);
   line-height: 1.6;
+  letter-spacing: 0.5px;
+
+}
+/* HERO IMAGE STYLING */
+.hero {
+  position: relative;
+  width: 100%;
+  height: 90vh; /* almost full screen */
+  overflow: hidden;
+  border-radius: 0 0 20px 20px;
+}
+
+.hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.5s ease;
+}
+
+/* subtle zoom effect on hover */
+.hero:hover img {
+  transform: scale(1.05);
+}
+
+/* gradient overlay for better text readability */
+.hero::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.3));
+}
+
+/* Hero text overlay */
+.hero-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-align: center;
+  text-shadow: 0 3px 10px rgba(0,0,0,0.5);
+}
+
+.hero-text h1 {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.hero-text p {
+  font-size: 1.5rem;
+  opacity: 0.9;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-text h1 {
+    font-size: 2rem;
+  }
+  .hero-text p {
+    font-size: 1rem;
+  }
 }
 
 /* =========================
@@ -246,10 +313,12 @@ h2.subtitle {
   color: var(--accent);
   font-weight: bold;
   text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 
 .contact-box p a:hover {
   color: #004c99;
+  text-decoration: none;
 }
 
 /* =========================
@@ -276,11 +345,23 @@ h2.subtitle {
     <ul class="nav-links">
       <li><a href="#about">About</a></li>
       <li><a href="#why-websites">Websites</a></li>
+      <li><a href="#article">Articles</a></li>
+      <li><a href="#mylinks">My Websites</a></li>
       <li><a href="#pets">Pets</a></li>
-      <li><a href="#support">Support</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
   </nav>
+  
+  <!-- HERO IMAGE SECTION -->
+<section class="hero">
+  <img 
+    src="/img/C7FE7946-2164-40FE-9B15-3472F115695D_4_5005_.jpeg" 
+    alt="Hero Image">
+  <div class="hero-text">
+    <h1>Welcome to My Website</h1>
+    <p>Exploring aviation, tech, and creativity</p>
+  </div>
+</section>
 
   <!-- ABOUT SECTION -->
   <h1 class="title">Home-Page</h1>
@@ -306,6 +387,12 @@ h2.subtitle {
     </p>
     <p>
       <em>“Code is like humor. When you have to explain it, it’s bad.”</em>
+    </p>
+    <p>
+      <em>“The sky is not the limit, it’s only the beginning.”</em>
+    </p>
+    <p>
+      <em>“Programs must be written for people to read, and only incidentally for machines to execute.”</em>
     </p>
     <br>
      <h3 style="margin-bottom:10px;">YouTube Channel:</h3>
@@ -464,6 +551,68 @@ h2.subtitle {
     </p>
   </div>
 
-  
+  <!-- SCRIPTS -->
+<script>
+  // Smooth scroll for anchor links (for browsers that don't support scroll-behavior)
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const targetId = this.getAttribute('href').slice(1);
+      const target = document.getElementById(targetId);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+
+  // Highlight nav link on scroll
+  const sections = ['about', 'why-websites', 'article', 'mylinks', 'pets', 'contact'];
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(id => {
+    const section = document.getElementById(id);
+    if (section) {
+      const sectionTop = section.offsetTop - 100; // adjust offset for sticky nav
+      const sectionHeight = section.offsetHeight;
+      if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+        current = id;
+      }
+    }
+  });
+
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href').slice(1) === current) {
+      link.classList.add('active');
+    }
+  });
+});
+
+
+  // Add .active style for nav links
+  const style = document.createElement('style');
+  style.innerHTML = `
+    .nav-links a.active {
+      background: var(--accent);
+      color: #fff;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Simple form validation (shows alert if fields are empty)
+  document.querySelector('.contact-form').addEventListener('submit', function(e) {
+    const name = this.Name.value.trim();
+    const email = this.Email.value.trim();
+    const message = this.Message.value.trim();
+    if (!name || !email || !message) {
+      alert('Please fill out all fields before submitting.');
+      e.preventDefault();
+    }
+  });
+
+
+  </script>
 </body>
+
 </html>
