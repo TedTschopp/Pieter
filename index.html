@@ -7,13 +7,13 @@
   <meta name="description" content="Personal website of Pieter W.C. Tschopp (PWCT) — student, aspiring pilot, and computer science enthusiast. Explore my projects, interests, and pets!">
   <meta name="author" content="Pieter William Conijn Tschopp">
   <meta name="keywords" content="Pieter Tschopp, PWCT, Royal Oaks School, student, pilot, CS, computer science, website projects">
-  
-  <!-- Base URL -->
-  <base href="https://pieter.tschopp.org/">
+  <meta name="robots" content="index, follow">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
+  <!-- Favicon -->
+  <link rel="icon" href="/img/Favicon.png" type="image/png">
 
-  <link rel="icon" href="/Favicon.png" type="image/png">
-
+  <!-- Title  -->
   <title>Pieter's Website</title>
 
   <style>
@@ -36,6 +36,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -43,6 +44,110 @@ body {
   background: var(--bg);
   color: var(--text-dark);
   line-height: 1.6;
+  letter-spacing: 0.5px;
+
+}
+
+/* =========================
+   HERO IMAGE – Upgraded
+========================= */
+
+.hero {
+  position: relative;
+  width: 100%;
+  height: 90vh;
+  overflow: hidden;
+  border-radius: 0 0 20px 20px;
+  filter: drop-shadow(0 5px 20px rgba(0,0,0,0.22));
+}
+
+/* Image with clarity + color depth + floating animation */
+.hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+
+  /* Makes image look higher-quality */
+  filter: contrast(1.12) saturate(1.12) brightness(1.04);
+
+  /* Smooth zoom & animation */
+  transition: transform 0.6s ease, filter 0.6s ease;
+
+  /* Floating cinematic motion */
+  animation: floatHero 6s ease-in-out infinite alternate;
+}
+
+/* Hover zoom (kept from your original) */
+.hero:hover img {
+  transform: scale(1.07);
+  filter: contrast(1.18) saturate(1.18) brightness(1.08);
+}
+
+/* Floating animation keyframes */
+@keyframes floatHero {
+  0% { transform: scale(1.03) translateY(0); }
+  100% { transform: scale(1.14) translateY(-14px); }
+}
+
+/* Gradient overlay for readability */
+.hero::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.2),
+    rgba(0,0,0,0.35)
+  );
+  pointer-events: none;
+}
+
+/* Glassmorphism text panel */
+.hero-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  text-align: center;
+
+  /* new glass effect */
+  backdrop-filter: blur(10px);
+  background: rgba(255,255,255,0.15);
+  padding: 25px 35px;
+  border-radius: 18px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.25);
+
+  text-shadow: 0 3px 10px rgba(0,0,0,0.5);
+}
+
+/* Text sizes (unchanged) */
+.hero-text h1 {
+  font-size: 3rem;
+  margin-bottom: 10px;
+}
+
+.hero-text p {
+  font-size: 1.5rem;
+  opacity: 0.92;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-text {
+    padding: 18px 24px;
+    border-radius: 15px;
+  }
+  .hero-text h1 {
+    font-size: 2rem;
+  }
+  .hero-text p {
+    font-size: 1rem;
+  }
 }
 
 /* =========================
@@ -136,10 +241,13 @@ h2.subtitle {
   border-radius: 15px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.25);
   margin-bottom: 10px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .leftimg { float: left; margin-right: 20px; }
+.leftimg:hover {  transform: translateY(-8px); box-shadow: 0 10px 25px rgba(0,0,0,0.35); }
 .imgright { float: right; margin-left: 20px; }
+.imgright:hover {  transform: translateY(-8px); box-shadow: 0 10px 25px rgba(0,0,0,0.35); }
 
 /* =========================
    WEBSITE BUTTONS
@@ -244,10 +352,12 @@ h2.subtitle {
   color: var(--accent);
   font-weight: bold;
   text-decoration: underline;
+  text-decoration-thickness: 2px;
 }
 
 .contact-box p a:hover {
   color: #004c99;
+  text-decoration: none;
 }
 
 /* =========================
@@ -274,11 +384,23 @@ h2.subtitle {
     <ul class="nav-links">
       <li><a href="#about">About</a></li>
       <li><a href="#why-websites">Websites</a></li>
+      <li><a href="#article">Articles</a></li>
+      <li><a href="#mylinks">My Websites</a></li>
       <li><a href="#pets">Pets</a></li>
-      <li><a href="#support">Support</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
   </nav>
+  
+  <!-- HERO IMAGE SECTION -->
+<section class="hero">
+  <img 
+    src="/img/C7FE7946-2164-40FE-9B15-3472F115695D_4_5005_.jpeg" 
+    alt="Hero Image">
+  <div class="hero-text">
+    <h1>Welcome to My Website</h1>
+    <p>Exploring aviation, tech, and creativity</p>
+  </div>
+</section>
 
   <!-- ABOUT SECTION -->
   <h1 class="title">Home-Page</h1>
@@ -286,13 +408,54 @@ h2.subtitle {
     <img class="leftimg" src="/img/Leoinwild.JPG" alt="Leo in the wild">
     <img class="imgright" src="/img/Cloud.jpeg" alt="White cat going to sleep">
     <p>
-      Hey! I’m a student at Royal Oaks School, and I’ve always been someone who loves learning new things and thinking about how they work. Ever since I was little, I’ve been fascinated by airplanes — the sound of engines, the feeling of takeoff, and the idea of traveling across the world. That’s what inspired my dream of becoming a pilot one day. Flying feels like freedom to me, and I’d love to explore the skies while visiting new places and meeting people from different parts of the world.
+      Hey! I’m a middle school student, and I’ve always been someone who loves learning new things and thinking about how they work. Ever since I was little, I’ve been fascinated by airplanes — the sound of engines, the feeling of takeoff, and the idea of traveling across the world. That’s what inspired my dream of becoming a pilot one day. Flying feels like freedom to me, and I’d love to explore the skies while visiting new places and meeting people from different parts of the world.
     </p>
     <p>
       At the same time, I’m really into technology and computers. I love problem-solving, figuring out how systems connect, and learning how to make things better with code. My goal is to earn a degree in Computer Science, where I can study programming, design, and all the cool things that go into creating modern technology. I think it’s amazing how both aviation and computer science rely on precision, logic, and creativity — and I want to bring those worlds together somehow.
     </p>
     <p>
       Outside of school, I enjoy spending time learning new skills, exploring creative projects, and setting goals for my future. Whether I’m dreaming about flying planes or building something on my computer, I always try to stay curious, focused, and positive about where life will take me next.
+    </p>
+    <p>
+      Thanks for visiting my website! Feel free to explore my projects, read about my interests, and learn more about the things I’m passionate about.
+    </p>
+    <br>
+    <h2 style="margin-bottom:10px;">Quotes I Like:</h2>
+    <p>
+      <em>“The engine is the heart of an airplane, but the pilot is its soul.”</em>
+    </p>
+    <p>
+      <em>“Code is like humor. When you have to explain it, it’s bad.”</em>
+    </p>
+    <p>
+      <em>“The sky is not the limit, it’s only the beginning.”</em>
+    </p>
+    <p>
+      <em>“Programs must be written for people to read, and only incidentally for machines to execute.”</em>
+    </p>
+    <br>
+     <h3 style="margin-bottom:10px;">YouTube Channel:</h3>
+    <p>
+      Visit my Youtube channel for more about me and my projects: 
+      <a 
+        href="https://www.youtube.com/@Avgeek123-j9r" 
+        target="_blank"
+        style="
+          display:inline-block;
+          background:var(--accent);
+          color:white;
+          padding:7px 16px;
+          border-radius:8px;
+          text-decoration:none;
+          font-weight:600;
+          box-shadow:0 2px 8px rgba(0,0,0,0.12);
+          transition:background 0.3s, transform 0.3s;
+        "
+        onmouseover="this.style.background='#004c99';this.style.transform='scale(1.05)'"
+        onmouseout="this.style.background='var(--accent)';this.style.transform='scale(1)'"
+      >
+        @PieterTschopp on YouTube
+      </a>
     </p>
   </div>
 
@@ -310,19 +473,18 @@ h2.subtitle {
       Building these websites also teaches me new coding skills while letting me explore the subjects I enjoy. Each project is both a learning experience and a way to make studying more fun and interactive.
     </p>
   </div>
+
   <!-- ARTICLE SECTION -->
-<h2 class="subtitle" id="article">Featured Article</h2>
+<h2 class="subtitle" id="article">Featured Articles</h2>
+
 <div class="box">
-  <img class="leftimg" src="/ChatGPT_VS_Gemini_Thumbnail.png" alt="Article Thumbnail">
-
+  <img class="leftimg" src="/img/ChatGPT_VS_Gemini_Thumbnail.png" alt="Article Thumbnail">
   <h2 style="margin-bottom:10px;">ChatGPT VS Gemini</h2>
-
   <p>
     Dive into a detailed comparison between ChatGPT and Google Gemini — covering speed,
     intelligence, creativity, and real-world usefulness. A full breakdown of strengths,
     weaknesses, and which one is better for different tasks.
   </p>
-
   <a href="https://pieter.tschopp.org/ChatGPT_VS_Gemini"
      style="
        display:inline-block;
@@ -339,20 +501,47 @@ h2.subtitle {
      onmouseout="this.style.background='var(--accent)'">
      Read Full Article →
   </a>
-
   <div style="clear: both;"></div>
 </div>
+
+<div class="box">
+  <img class="leftimg" src="/img/Apple_VS_Samsung_Thumbnail.png" alt="Article Thumbnail">
+  <h2 style="margin-bottom:10px;">Apple VS Samsung: The Ultimate Comparison</h2>
+  <p>
+    Explore the epic showdown between Apple and Samsung! This article dives into their
+    histories, innovations, market strategies, and how they shape the tech world today.
+    Perfect for tech enthusiasts and anyone curious about these two giants.
+  </p>
+  <a href="https://pieter.tschopp.org/Apple_VS_Samsung"
+     style="
+       display:inline-block;
+       margin-top:15px;
+       padding:10px 18px;
+       background:var(--accent);
+       color:white;
+       border-radius:10px;
+       text-decoration:none;
+       font-weight:600;
+       transition:0.3s ease;
+     "
+     onmouseover="this.style.background='#004c99'"
+     onmouseout="this.style.background='var(--accent)'">
+     Read Full Article →
+  </a>
+  <div style="clear: both;"></div>
+</div>
+
 
   <!-- MY WEBSITE LINKS SECTION -->
   <section id="mylinks" class="box">      
     <h2 style="text-align:center;color:white;">My Websites</h2>
     <ul style="list-style:none;padding:0;text-align:center;font-size:1.1rem;">
-      <li><a class="websites" href="cats" target="_blank">🐱 Cats</a></li><br>
-      <li><a class="websites" href="dogs" target="_blank">🐶 Dogs</a></li><br>
-      <li><a class="websites" href="cars" target="_blank">🚗 Cars</a></li><br>
-      <li><a class="websites" href="planes" target="_blank">✈️ Planes</a></li><br>
-      <li><a class="websites" href="Around-the-Sea" target="_blank">🌊 Around the Sea</a></li><br>
-      <li><a class="websites" href="turtles" target="_blank">🐢 Turtles</a></li>
+      <li><a class="websites" href="https://pieter.tschopp.org/cats" target="_blank">🐱 Cats</a></li><br>
+      <li><a class="websites" href="https://pieter.tschopp.org/dogs" target="_blank">🐶 Dogs</a></li><br>
+      <li><a class="websites" href="https://pieter.tschopp.org/cars" target="_blank">🚗 Cars</a></li><br>
+      <li><a class="websites" href="https://pieter.tschopp.org/planes" target="_blank">✈️ Planes</a></li><br>
+      <li><a class="websites" href="https://pieter.tschopp.org/Around-the-Sea" target="_blank">🌊 Around the Sea</a></li><br>
+      <li><a class="websites" href="https://pieter.tschopp.org/turtles" target="_blank">🐢 Turtles</a></li>
     </ul>
   </section>
 
@@ -360,7 +549,6 @@ h2.subtitle {
   <h2 class="subtitle" id="pets">My Pets</h2>
   <div class="pets-box">
     <div class="pet-card">
-      <h2>Cats</h2>
       <h3>Leo 🐱</h3>
       <p>A white cat with a brown and grey coat. Loves to sleep in dark places like under the bed, couch, chair, in the closet, and more!</p>
     </div>
@@ -402,6 +590,68 @@ h2.subtitle {
     </p>
   </div>
 
-  
+  <!-- SCRIPTS -->
+<script>
+  // Smooth scroll for anchor links (for browsers that don't support scroll-behavior)
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const targetId = this.getAttribute('href').slice(1);
+      const target = document.getElementById(targetId);
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+
+  // Highlight nav link on scroll
+  const sections = ['about', 'why-websites', 'article', 'mylinks', 'pets', 'contact'];
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(id => {
+    const section = document.getElementById(id);
+    if (section) {
+      const sectionTop = section.offsetTop - 100; // adjust offset for sticky nav
+      const sectionHeight = section.offsetHeight;
+      if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+        current = id;
+      }
+    }
+  });
+
+  navLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href').slice(1) === current) {
+      link.classList.add('active');
+    }
+  });
+});
+
+
+  // Add .active style for nav links
+  const style = document.createElement('style');
+  style.innerHTML = `
+    .nav-links a.active {
+      background: var(--accent);
+      color: #fff;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Simple form validation (shows alert if fields are empty)
+  document.querySelector('.contact-form').addEventListener('submit', function(e) {
+    const name = this.Name.value.trim();
+    const email = this.Email.value.trim();
+    const message = this.Message.value.trim();
+    if (!name || !email || !message) {
+      alert('Please fill out all fields before submitting.');
+      e.preventDefault();
+    }
+  });
+
+
+  </script>
 </body>
+
 </html>
