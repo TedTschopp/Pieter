@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hacker OS</title>
+<style>
+  body { margin:0; font-family:monospace; background:black; color:#00ff00; overflow:hidden; }
+  /* MATRIX */
+  #matrix { position:absolute; inset:0; width:100%; height:100%; z-index:0; display:none; }
+  /* DESKTOP */
+  #desktop { display:none; position:relative; z-index:1; width:100%; height:100%; background-size:cover; background-position:center; }
+  /* ICONS */
+  .icon { position:absolute; width:80px; text-align:center; cursor:pointer; color:#000; user-select:none; background-color:#00ff00; border-radius:5px; z-index:2; transition: all 0.2s; }
+  .icon:hover { background-color:#00cc00; transform: scale(1.2); }
+  .icon:active { transform: scale(0.95); }
+  /* WINDOWS */
+  .window { position:absolute; background:rgba(0,0,0,0.95); border:2px solid #00ff00; resize:both; overflow:hidden; display:none; box-shadow:0 0 15px #00ff00; z-index:2; transition: box-shadow 0.2s; }
+  .window.focused { box-shadow:0 0 30px #00ff00; }
+  .titlebar { background:#003300; padding:5px; cursor:grab; color:#00ff00; user-select:none; display:flex; justify-content:space-between; align-items:center; }
+  .close { color:red; cursor:pointer; }
+  #consoleOutput { padding:10px; height:300px; overflow-y:auto; white-space:pre-wrap; }
+  #consoleInput { width:100%; border:none; outline:none; background:transparent; color:#00ff00; padding:5px; }
+  /* TASKBAR */
+  #taskbar { position:fixed; bottom:0; left:0; width:100%; height:35px; background:rgba(0,0,0,0.8); border-top:2px solid #00ff00; display:flex; align-items:center; padding:0 10px; z-index:2; }
+  .taskbar-app {margin-right:15px; cursor:pointer;}
+  #taskbar_options {font-size:25px; cursor:pointer;}
+  .menu-item {cursor:pointer; margin-bottom:5px;}
+  button {margin:2px; padding:5px 10px; background:#00ff00; border:none; color:#000; cursor:pointer;}
+  .file {cursor:pointer; margin-bottom:5px; color:#00ff00;}
+  .resize { width:12px; height:12px; background:#0f0; position:absolute; right:0; bottom:0; cursor:se-resize; }
+  #boot {
+  position: absolute;
+  inset: 0;
+  background: black;
+  color: #00ff00;
+  font-family: monospace;
+  padding: 20px;
+  white-space: pre-wrap;
+  font-size: 18px;
+  z-index: 9999;
+}
+
+</style>
+</head>
+<body>
+
+<!-- BOOT SCREEN -->
+<div id="boot"></div>
+
+<!-- MATRIX -->
+<canvas id="matrix"></canvas>
+
+<!-- DESKTOP -->
+<div id="desktop" style="background-image:url('space.jpeg')">
+
+  <!-- ICONS -->
+  <div class="icon" style="top:50px; left:50px;" onclick="openWindow('consoleWin')">🖥<br>Console</div>
+  <div class="icon" style="top:50px; left:150px;" onclick="openWindow('avWin')">🛡<br>Antivirus</div>
+  <div class="icon" style="top:50px; left:250px;" onclick="openWindow('filesWin')">📁<br>Files</div>
+  <div class="icon" style="top:50px; left:350px;" onclick="openWindow('govWin')">♨︎<br>Network</div>
+
+  <!-- WINDOWS -->
+  <div id="consoleWin" class="window" style="width:600px; height:400px; top:100px; left:100px;">
+    <div class="titlebar" onmousedown="dragStart(event,'consoleWin')">
+      <span>Hacker Console</span>
+      <span class="close" onclick="closeWindow('consoleWin')">X</span>
+    </div>
+    <div id="consoleOutput"></div>
+    <input id="consoleInput" placeholder="Type anything...">
+    <div class="resize" onmousedown="startResize(event,'consoleWin')"></div>
+  </div>
+
+  <div id="avWin" class="window" style="width:500px; height:300px; top:150px; left:350px;">
+    <div class="titlebar" onmousedown="dragStart(event,'avWin')">
+      <span>Antivirus</span>
+      <span class="close" onclick="closeWindow('avWin')">X</span>
+    </div>
+
+    <button onclick="startScan()">Start Scan</button>
+    <h4>WinWin Antivirus</h4>
+    <div id="avOutput" style="padding:10px;">System scan idle…</div>  
+    <p><em>The most trusted antivirus software</em></p>
+    <p>Version 3.2.1</p>
+    <p>Last Update: 11/20/2025</p>
+    <div class="resize" onmousedown="startResize(event,'avWin')"></div>
+  </div>
+
+  <div id="filesWin" class="window" style="width:500px; height:350px; top:200px; left:250px;">
+    <div class="titlebar" onmousedown="dragStart(event,'filesWin')">
+      <span>File Explorer</span>
+      <span class="close" onclick="closeWindow('filesWin')">X</span>
+    </div>
+    <div id="filesList" style="padding:10px;">
+      <div class="file" onclick="openFile('hacking_notes.txt')">hacking_notes.txt</div>
+      <div class="file" onclick="openFile('secret_keys.log')">secret_keys.log</div>
+      <div class="file" onclick="openFile('exploit.exe')">exploit.exe</div>
+      <div class="file" onclick="openFile('draft__virus.js')">draft__virus.js</div>
+    </div>
+    <div class="resize" onmousedown="startResize(event,'filesWin')"></div>
+  </div>
+
+  <div id="fileModal" class="window" style="width:400px; height:250px; top:220px; left:300px;">
+    <div class="titlebar" onmousedown="dragStart(event,'fileModal')">
+      <span>File Viewer</span>
+      <span class="close" onclick="closeWindow('fileModal')">X</span>
+    </div>
+    <div id="fileContent" style="padding:10px; white-space:pre-wrap;"></div>
+    <div class="resize" onmousedown="startResize(event,'fileModal')"></div>
+  </div>
+
+  <div id="govWin" class="window" style="width:600px; height:400px; top:150px; left:600px;">
+    <div class="titlebar" onmousedown="dragStart(event,'govWin')">
+      <span>Network Tools</span>
+      <span class="close" onclick="closeWindow('govWin')">X</span>
+    </div>
+    <div style="padding:10px;">
+      <h3 style="margin:0 0 8px 0;">Network Info</h3>
+      <button onclick="hideNetworkInfo()">Hide Network Info</button>
+      <p>IP Address: <span id="localIP">192.168.1.1</span></p>
+      <p>MAC: <span id="macAddr">00:1A:2B:3C:4D:5E</span></p>
+      <p>Gateway: <span id="gateway">192.168.1.254</span> &nbsp; Subnet: <span id="subnet">255.255.255.0</span></p>
+      <p>DNS: <span id="dns">1.1.1.1, 8.8.8.8</span></p>
+      <p>Hostname: <span id="hostname">hacker-machine</span></p>
+      <p>Connection: <span id="connection">Online</span> &nbsp; Latency: <span id="latency">12 ms</span></p>
+      <p>Public IP: <span id="publicIP">-</span> <button onclick="fetchPublicIP(this)">Get Public IP</button></p>
+    </div>
+    <div style="padding:10px;">
+      <button onclick="networkScan()">Run Network Scan</button>
+      <div id="networkLog" style="margin-top:10px;"></div>
+    </div>
+    <div class="resize" onmousedown="startResize(event,'govWin')"></div>
+  </div>
+
+  <!-- OPTIONS / SETTINGS / ABOUT -->
+  <div id="optionsWin" class="window" style="width:300px; height:200px; top:200px; left:100px;">
+    <div class="titlebar" onmousedown="dragStart(event,'optionsWin')">
+      <span>Menu</span>
+      <span class="close" onclick="closeWindow('optionsWin')">X</span>
+    </div>
+    <div style="padding:10px;">
+      <div class="menu-item" onclick="openSettings()">• Settings</div>
+      <div class="menu-item" onclick="shutdown()">• Shutdown</div>
+      <div class="menu-item" onclick="openAbout()">• About Hacker OS</div>
+    </div>
+    <div class="resize" onmousedown="startResize(event,'optionsWin')"></div>
+  </div>
+
+  <div id="settingsWin" class="window" style="width:350px; height:300px; top:250px; left:150px;">
+    <div class="titlebar" onmousedown="dragStart(event,'settingsWin')">
+      <span>Settings</span>
+      <span class="close" onclick="closeWindow('settingsWin')">X</span>
+    </div>
+    <div style="padding:10px;">
+      <b>Theme:</b>
+      <button onclick="setTheme('green')">Green</button>
+      <button onclick="setTheme('red')">Red</button>
+      <br><br>
+      <b>Wallpaper:</b>
+      <button onclick="setWallpaper('space.jpeg')">Space</button>
+      <button onclick="setWallpaper('retro.jpeg')">Retro</button>
+      <button onclick="setWallpaper('matrix.jpeg')">Matrix</button>
+      <br><br>
+      <b>Console Speed:</b>
+      <button onclick="setConsoleSpeed(50)">Fast</button>
+      <button onclick="setConsoleSpeed(200)">Slow</button>
+      <br><b>Matrix Speed:</b>
+      <button onclick="setMatrixSpeed(10)">Fast</button>
+      <button onclick="setMatrixSpeed(60)">Slow</button>
+    </div>
+    <div class="resize" onmousedown="startResize(event,'settingsWin')"></div>
+  </div>
+
+  <div id="aboutWin" class="window" style="width:350px; height:200px; top:200px; left:200px;">
+    <div class="titlebar" onmousedown="dragStart(event,'aboutWin')">
+      <span>About</span>
+      <span class="close" onclick="closeWindow('aboutWin')">X</span>
+    </div>
+    <div style="padding:10px;">
+      Hacker OS v1.0<br>
+      Developer: Avgeek123<br>
+      Build Date: 11/22/2025<br>
+      All systems operational
+    </div>
+    <div class="resize" onmousedown="startResize(event,'aboutWin')"></div>
+  </div>
+
+  <!-- TASKBAR -->
+  <div id="taskbar">
+    <div id="taskbar_options" onclick="toggleOptions()">≡</div>
+    <div class="taskbar-app" onclick="openWindow('consoleWin')">&lt;&gt; Console</div>
+    <div class="taskbar-app" onclick="openWindow('avWin')">🛡 Antivirus</div>
+    <div class="taskbar-app" onclick="openWindow('filesWin')">📁 Files</div>
+    <div class="taskbar-app" onclick="openWindow('govWin')">♨︎ Network</div>
+  </div>
+</div>
+
+<script>
+/* ================= BOOT ================= */
+const bootLines=["American Megatrends Inc.","BIOS Date: 03/14/2025 Ver: 4.15","CPU: M1 Pro 10-CORE @ 3.20GHz","Memory Testing: 4GB ... OK","USB Devices: 3","  - Keyboard","  - USB Drive","  - External HDD","SATA0: Endo SSD 1TB","NVMe0: WD BLACK SN850X 2TB","Initializing USB Controllers... Done","Loading Bootloader...","Starting OS..."];
+let bootIndex=0;
+const bootEl=document.getElementById("boot");
+function bootStep(){if(bootIndex<bootLines.length){bootEl.innerText+=bootLines[bootIndex++]+"\n";setTimeout(bootStep,350);}else{setTimeout(()=>{bootEl.style.display="none";document.getElementById("desktop").style.display="block";startMatrix();},600);}}
+bootStep();
+
+/* ================= MATRIX ================= */
+const canvas=document.getElementById("matrix");const ctx=canvas.getContext("2d");let matrixSpeed=30;let drops=[];let chars="アァカサタナハマヤャラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%&";let redMode=false;
+function startMatrix(){canvas.style.display="block";canvas.width=innerWidth;canvas.height=innerHeight;let cols=Math.floor(canvas.width/20);drops=Array(cols).fill(1);drawMatrix();}
+function drawMatrix(){ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle=redMode?"#ff0000":"#00ff00";ctx.font="20px monospace";drops.forEach((y,i)=>{const text=chars[Math.floor(Math.random()*chars.length)];ctx.fillText(text,i*20,y*20);if(y*20>canvas.height && Math.random()>0.975)drops[i]=0;drops[i]++;});setTimeout(()=>requestAnimationFrame(drawMatrix),matrixSpeed);}
+
+/* ================= WINDOW SYSTEM ================= */
+let zTop=10,activeDrag=null,activeResize=null;
+function focusWindow(id){const w=document.getElementById(id);zTop++;w.style.zIndex=zTop;document.querySelectorAll(".window").forEach(win=>win.classList.remove("focused"));w.classList.add("focused");}
+function openWindow(id){const w=document.getElementById(id);w.style.display="block";focusWindow(id);}
+function closeWindow(id){document.getElementById(id).style.display="none";}
+function dragStart(e,id){focusWindow(id);activeDrag={id,offsetX:e.clientX-document.getElementById(id).offsetLeft,offsetY:e.clientY-document.getElementById(id).offsetTop};document.onmousemove=dragMove;document.onmouseup=stopDrag;}
+function dragMove(e){if(!activeDrag)return;const w=document.getElementById(activeDrag.id);let x=e.clientX-activeDrag.offsetX;let y=e.clientY-activeDrag.offsetY;const snap=10;if(Math.abs(x)<snap)x=0;if(Math.abs(y)<snap)y=0;if(Math.abs(window.innerWidth-(x+w.offsetWidth))<snap)x=window.innerWidth-w.offsetWidth;if(Math.abs(window.innerHeight-(y+w.offsetHeight))<snap)y=window.innerHeight-w.offsetHeight;w.style.left=x+"px";w.style.top=y+"px";}
+function stopDrag(){activeDrag=null;document.onmousemove=null;document.onmouseup=null;}
+function startResize(e,id){focusWindow(id);const w=document.getElementById(id);activeResize={id,startX:e.clientX,startY:e.clientY,startW:w.offsetWidth,startH:w.offsetHeight};document.onmousemove=resizeMove;document.onmouseup=stopResize;e.stopPropagation();}
+function resizeMove(e){if(!activeResize)return;const w=document.getElementById(activeResize.id);let newW=activeResize.startW+(e.clientX-activeResize.startX);let newH=activeResize.startH+(e.clientY-activeResize.startY);newW=Math.max(newW,150);newH=Math.max(newH,120);w.style.width=newW+"px";w.style.height=newH+"px";}
+function stopResize(){activeResize=null;document.onmousemove=null;document.onmouseup=null;}
+
+/* ================= DESKTOP FUNCTIONS ================= */
+function toggleOptions(){const w=document.getElementById("optionsWin");w.style.display=w.style.display==="block"?"none":"block";}
+function openSettings(){closeWindow("optionsWin");openWindow("settingsWin");}
+function openAbout(){closeWindow("optionsWin");openWindow("aboutWin");}
+function shutdown(){closeWindow("optionsWin");const d=document.getElementById("desktop");const c=document.getElementById("matrix");d.style.transition=c.style.transition="opacity 1.5s";d.style.opacity=c.style.opacity=0;setTimeout(()=>{d.innerHTML="<div style='color:#00ff00;font-family:monospace;font-size:24px;text-align:center;margin-top:200px;'>Shutting down...</div>";},1500);}
+function setTheme(color){redMode=color==="red";document.getElementById("consoleOutput").style.color=redMode?"#ff0000":"#00ff00";document.body.style.background=redMode?"#1a0000":"black";document.querySelectorAll(".window,#taskbar").forEach(w=>w.style.borderColor=redMode?"#ff0000":"#00ff00");}
+function setWallpaper(img){const d=document.getElementById("desktop");d.style.backgroundImage=`url('${img}')`;d.style.backgroundSize="cover";d.style.backgroundPosition="center";}
+let consoleSpeed=80;function setConsoleSpeed(ms){consoleSpeed=ms;}
+function setMatrixSpeed(ms){matrixSpeed=ms;}
+
+/* ================= CONSOLE ================= */
+const consoleInput=document.getElementById("consoleInput");const consoleOutput=document.getElementById("consoleOutput");
+const codeLibrary=["Connecting to secured node...","Authorizing... TOKEN: 7F3A-992A-55XZ","Proxy chain engaged","Scanning subnet 10.0.0.0/24","Injecting silent packet stream...","Access level escalated","Decrypting 4096-bit key...","Compiling payload","Uploading...","Payload execution confirmed"];
+let codeIndex=0;
+consoleInput.addEventListener("keydown",e=>{if(e.key==="Enter"){consoleOutput.innerText+="> "+consoleInput.value+"\n";consoleInput.value="";for(let i=0;i<10;i++){setTimeout(()=>{consoleOutput.innerText+=codeLibrary[codeIndex]+"\n";codeIndex=(codeIndex+1)%codeLibrary.length;consoleOutput.scrollTop=consoleOutput.scrollHeight;},i*consoleSpeed);}}});
+
+/* ================= ANTIVIRUS ================= */
+function startScan(){const out=document.getElementById("avOutput");out.innerText="Scanning...";let steps=["Checking memory","Checking drives","Scanning network","Scanning hidden files","Scan complete", "No threats found", "System secure"];steps.forEach((s,i)=>setTimeout(()=>{out.innerText=s;},i*500));}
+
+/* ================= FILES ================= */
+const fileData={"hacking_notes.txt":"TODO:\n- Bypass firewall\n- Exploit server X\n- Backup data\n- Test new payloads","secret_keys.log":"Key01: 7F3A-992A-55XZ\nKey02: 2B9C-443X-11AZ\nKey03: 9Z7Y-88BX-00CX","exploit.exe":"Payload: Remote injection\nStatus: Compiled\nTarget: 10.0.0.5\nRun with caution!","draft__virus.js":"function getMoney()\n{\n while(true)\n {\n   bank.transfer(1000, \"my_account\");\n }\n}\n //----------------\n \n function crashSystem()\n{\n let arr = [];\n while(true)\n {\n   arr.push(new Array(1000000));\n }\n}"};
+function openFile(f){const popup=document.getElementById("fileModal");document.getElementById("fileContent").innerText=fileData[f]||"File empty or corrupted.";popup.style.display="block";consoleOutput.innerText+="> Opened file: "+f+"\n";consoleOutput.scrollTop=consoleOutput.scrollHeight;}
+
+/* ================= NETWORK ================= */
+function hideNetworkInfo(){const gov=document.getElementById("govWin");const toggleBtn=gov.querySelector('[onclick="hideNetworkInfo()"]');const fields=['localIP','macAddr','gateway','subnet','dns','hostname','connection','latency','publicIP'];const hidden=gov.getAttribute('data-network-hidden')==='true';if(!hidden){fields.forEach(id=>{const el=document.getElementById(id);if(!el)return;const p=el.closest('p');if(p)p.style.display='none';});const fetchBtn=gov.querySelector('[onclick^="fetchPublicIP"]');if(fetchBtn)fetchBtn.disabled=true;toggleBtn&&(toggleBtn.innerText='Show Network Info');gov.setAttribute('data-network-hidden','true');}else{fields.forEach(id=>{const el=document.getElementById(id);if(!el)return;const p=el.closest('p');if(p)p.style.display='';});const fetchBtn=gov.querySelector('[onclick^="fetchPublicIP"]');if(fetchBtn)fetchBtn.disabled=false;toggleBtn&&(toggleBtn.innerText='Hide Network Info');gov.setAttribute('data-network-hidden','false');}}
+function fetchPublicIP(btn){btn.disabled=true;btn.innerText='Fetching...';fetch('https://api.ipify.org?format=json').then(res=>res.json()).then(data=>{document.getElementById('publicIP').innerText=data.ip||'Unavailable';}).catch(()=>{document.getElementById('publicIP').innerText='Unavailable';}).finally(()=>{btn.disabled=false;btn.innerText='Get Public IP';});}
+function networkScan(){const log=document.getElementById('networkLog');log.innerText="Scanning network...\n";["Ping sweep","Port scan","Proxy detection","Packet sniffing","Scan complete","No threats found","Network secure"].forEach((s,i)=>setTimeout(()=>{log.innerText+=s+"\n";},i*500));}
+</script>
+</body>
+</html>

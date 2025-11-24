@@ -100,8 +100,8 @@
   "crash": "System down 😵 — restarting…",
 
   "ai": "Artificial Intelligence: computers simulating thinking 🤖",
-  "ml": "Machine Learning: AI that learns from data.",
   "html": "HTML structures web pages 🌐",
+  "ml": "Machine Learning: AI that learns from data.",
   "css": "CSS styles websites 🎨",
   "js": "JS powers interactivity ⚡",
   "typescript": "TS = JS with types for safer code 🔐",
