@@ -1,30 +1,149 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <link rel="icon" type="image/x-icon" href="https://th.bing.com/th/id/OIP.qtUXsa7x53dx9wHZmSiCgQHaEo?w=301&h=187&c=7&r=0&o=5&dpr=2&pid=1.7">
-     </head>   
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Gallery</title>
+    <link rel="icon" type="image/x-icon" href="https://w7.pngwing.com/pngs/798/422/png-transparent-rey-kylo-ren-logo-font-youtube-miscellaneous-angle-rectangle.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 20px;
+            font-family: 'Poppins', Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
 
-        <body>
-            <br> <br> <br> <br> <br> <br> <br> <br> <br>  <br> <br> <br> <br> <br> <br> <br> 
-            <h1 class="b"style="text-align: center">Sorrry,but there are no videos. Come back later!</h1>
+        .nav-bar {
+            border: 2px solid black;
+            border-radius: 10px;
+            background-color: whitesmoke;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
 
-             </body>
-             <style>
-            
-            
-            
+        .nav-bar button, .nav-bar a {
+            font-family: 'Chalkboard', sans-serif;
+            padding: 8px 12px;
+            border: 1px solid gray;
+            border-radius: 5px;
+            background-color: white;
+            cursor: pointer;
+            text-decoration: none;
+            color: black;
+            transition: background-color 0.3s, transform 0.2s;
+        }
 
-.b {
-    font-size: small;
-  font-family: "Helvetica";
-  color: gray;
-}
+        .nav-bar button:hover, .nav-bar a:hover {
+            background-color: #ddd;
+            transform: scaleY(1.05);
+        }
 
- 
+        .nav-bar .title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: x-large;
+            color: dimgray;
+            margin: 0;
+        }
 
-             </style>
-            
+        .main-video {
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
+        .main-video video {
+            width: 100%;
+            max-width: 400px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        }
 
+        .section-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-top: 15px;
+            color: #222;
+            display: block;
+            text-align: center;
+        }
 
+        .youtube-videos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        iframe {
+            width: 100%;
+            height: 240px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        }
+
+        fieldset {
+            border-radius: 10px;
+            border-width: 10px;
+            border-color: dimgray;
+            padding: 10px;
+        }
+    </style>
+    <script>
+        function toggleTheme() {
+            if (document.body.style.backgroundColor === 'black') {
+                document.body.style.backgroundColor = '#f4f4f4';
+                document.body.style.color = '#333';
+            } else {
+                document.body.style.backgroundColor = 'black';
+                document.body.style.color = 'white';
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="https://pieter.tschopp.org"><button>Home</button></a>
+        <a onclick="toggleTheme()">Toggle Background</a>
+        <p class="title">Pete-Tube</p>
+    </div>
+
+    <!-- Main Iron Golem Video -->
+    <div class="main-video">
+        <video controls>
+            <source src="irongoulmdance.mp4" type="video/mp4">
+            <source src="irongoulmdance.ogg" type="video/ogg">
+            Your browser does not support the video tag.
+        </video>
+        <div class="section-title">Gray Still Plays</div>
+    </div>
+
+    <fieldset>
+        <!-- YouTube Videos Grid -->
+        <div class="youtube-videos">
+            <iframe src="https://www.youtube.com/embed/cIlbQArxLVg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <iframe src="https://www.youtube.com/embed/A9FDtA00Mk4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <iframe src="https://www.youtube.com/embed/clGx2EY3EzE?start=394" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+    </fieldset>
+<br>
+    <!-- Doni Bobes Section -->
+    <fieldset>
+        <div class="section-title">Doni Bobes</div>
+        <div class="youtube-videos">
+            <iframe src="https://www.youtube.com/embed/WynvoeFGaPQ" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <iframe src="https://www.youtube.com/embed/ov5w8zgENv0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            <iframe src="https://www.youtube.com/embed/NkhExv9QaNE?start=2774" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+
+  
+    </fieldset>
+
+</body>
 </html>

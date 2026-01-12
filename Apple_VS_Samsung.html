@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="icon" type="image/png" href="/img/Favicon.png" />
+ <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+        /* General page styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .imgs {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .imgs img {
+            height: 80px; /* adjust if needed */
+        }
+
+        /* Navigation bar */
+        nav {
+            background-color: #0078D7; /* nicer blue */
+            text-align: center;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 1rem;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #FFD700; /* subtle hover effect */
+        }
+
+        /* Content area */
+        #content {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 1rem 2rem;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        /* Markdown headings styling */
+        #content h2, #content h3 {
+            color: #0078D7;
+            margin-top: 1.5rem;
+        }
+        #content h1 {
+            color: #008cff;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        /* Markdown links */
+        #content a {
+            color: #0078D7;
+            text-decoration: underline;
+        }
+
+        /* Markdown code blocks */
+        #content pre {
+            background-color: #f4f4f4;
+            padding: 1rem;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        #content code {
+            background-color: #eee;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+        }
+</style>
+</head>
+<body>
+   <nav>
+        <a href="https://pieter.tschopp.org">Home</a>
+        <a href="https://pieter.tschopp.org/ai">Endo Prism</a>
+    </nav>
+<div class="imgs">
+    <img src="/img/Apple_logo.png" alt="Apple Logo">
+    <img src="/img/Samsung_logo.png" alt="Samsung Logo">
+</div>
+<div id="content">Loading article....</div>
+    <script>       
+     fetch('/MD_Files_article/Apple_VS_Samsung.md')
+            .then(response => response.text())
+            .then(text => {
+                document.getElementById('content').innerHTML = marked.parse(text);
+            })
+            .catch(err => {
+                document.getElementById('content').innerHTML = "Failed to load article.";
+                console.error(err);
+            });</script>
+</body>
+
+</html>
