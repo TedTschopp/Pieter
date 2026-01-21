@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trigram Text Generator</title>
+<style>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 2em;
+    background: #f0f2f5;
+    color: #333;
+    line-height: 1.6;
+}
+textarea, input, input[type="range"] {
+    width: 100%;
+    font-family: 'Courier New', monospace;
+    font-size: 1em;
+    padding: 0.75em;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+textarea { height: 150px; }
+textarea:focus, input:focus { outline: none; border-color: #5b9bd5; box-shadow: 0 0 8px rgba(91,155,213,0.3); }
+button {
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    margin-top: 1em;
+    background: #5b9bd5;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+button:hover { background: #4a8ac4; transform: translateY(-2px); }
+button:active { transform: translateY(0); }
+pre {
+    background: #fff;
+    padding: 1em;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.03);
+    overflow-x: auto;
+}
+label[for="temperature"] { display: block; margin-top: 1em; }
+</style>
+</head>
+<body>
+
+<h1>Trigram Text Generator</h1>
+
+<label for="corpus">Corpus (default loaded):</label>
+<textarea id="corpus"></textarea>
+
+<label for="prompt">Prompt (optional):</label>
+<input type="text" id="prompt" placeholder="Start your sentence here">
+
+<label for="temperature">Temperature: <span id="tempValue">0.8</span></label>
+<input type="range" id="temperature" min="0.1" max="2" step="0.05" value="0.8">
+
+<button id="generateBtn">Generate Text</button>
+
+<h2>Output:</h2>
+<pre id="output"></pre>
+
+<script>
+// ================== BASELINE CORPUS ==================
+const defaultCorpus = `Hello world </w> this is a test </w> example corpus </w> text </w>`;
+document.getElementById("corpus").value = defaultCorpus;
+
+// ================== CONFIG ==================
+const MAX_TOKENS = 100;
+
+// ================== UTILITY FUNCTIONS ==================
+/**
+ * Sample from a probability map with temperature scaling
+ */
+function sample(probs, temperature = 1.0) {
+    const items = Array.from(probs.entries());
+    const logits = items.map(([_, p]) => Math.log(p + 1e-9) / temperature);
+    const maxLogit = Math.max(...logits);
+    const exps = logits.map(l => Math.exp(l - maxLogit));
+    const total = exps.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    let cum = 0;
+    for (let i = 0; i < items.length; i++) {
+        cum += exps[i];
+        if (cum >= r) return items[i][0];
+    }
+    return items[items.length - 1][0];
+}
+
+/**
+ * Decode BPE tokens into readable text
+ */
+function decode(tokens) {
+    return tokens
+        .map(tok => tok.replace(/<\/w>/g, ""))
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+/**
+ * Train trigram model: returns Map<"tok1|||tok2", Map<nextTok, prob>>
+ */
+function trainTrigram(tokens) {
+    const trigram = new Map();
+    for (let i = 0; i < tokens.length - 2; i++) {
+        const ctx = `${tokens[i]}|||${tokens[i + 1]}`;
+        const next = tokens[i + 2];
+        if (!trigram.has(ctx)) trigram.set(ctx, new Map());
+        const counter = trigram.get(ctx);
+        counter.set(next, (counter.get(next) || 0) + 1);
+    }
+
+    // Convert counts → probabilities
+    const model = new Map();
+    for (const [ctx, counter] of trigram.entries()) {
+        const total = Array.from(counter.values()).reduce((a, b) => a + b, 0);
+        const probs = new Map();
+        for (const [tok, count] of counter.entries()) {
+            probs.set(tok, count / total);
+        }
+        model.set(ctx, probs);
+    }
+    return model;
+}
+
+/**
+ * Generate sequence using trigram model
+ */
+function generate(model, tokens, promptTokens = [], temperature = 0.8) {
+    let out;
+
+    if (promptTokens.length >= 2) {
+        out = [...promptTokens.slice(-2)]; // take last 2 tokens of prompt
+    } else {
+        const startIdx = Math.floor(Math.random() * (tokens.length - 2));
+        out = promptTokens.length === 1
+            ? [promptTokens[0], tokens[startIdx + 1]]
+            : [tokens[startIdx], tokens[startIdx + 1]];
+    }
+
+    let sentences = 0;
+
+    for (let i = 0; i < MAX_TOKENS; i++) {
+        const ctx = `${out[out.length - 2]}|||${out[out.length - 1]}`;
+        if (!model.has(ctx)) {
+            // fallback to random token if unseen context
+            out.push(tokens[Math.floor(Math.random() * tokens.length)]);
+        } else {
+            out.push(sample(model.get(ctx), temperature));
+        }
+
+        // Stop after ~3 sentences (punctuation)
+        if (/[.!?]$/.test(out[out.length - 1])) sentences++;
+        if (sentences >= 3) break;
+    }
+
+    return out;
+}
+
+// ================== UI INTERACTIONS ==================
+const tempSlider = document.getElementById("temperature");
+const tempLabel = document.getElementById("tempValue");
+tempSlider.addEventListener("input", () => tempLabel.textContent = tempSlider.value);
+
+document.getElementById("generateBtn").addEventListener("click", () => {
+    const corpusText = (document.getElementById("corpus").value.trim() + " ").repeat(20);
+    if (!corpusText) return alert("Please enter a corpus first!");
+    const tokens = corpusText.split(/\s+/);
+
+    const model = trainTrigram(tokens);
+
+    const promptText = document.getElementById("prompt").value.trim();
+    const promptTokens = promptText ? promptText.split(/\s+/) : [];
+
+    const temperature = parseFloat(tempSlider.value);
+
+    const outputTokens = generate(model, tokens, promptTokens, temperature);
+    const readableText = decode(outputTokens);
+
+    document.getElementById("output").textContent = readableText;
+});
+
+</script>
+
+</body>
+</html>
+ 
