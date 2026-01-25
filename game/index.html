@@ -6,174 +6,174 @@
 <style>
 /* ================= HOTBAR ================= */
 .hotbar {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 4px;
-  pointer-events: none;
-  z-index: 100;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  pointer-events: none;
+  z-index: 100;
 }
 
 .hotbar .slot {
-  width: 48px;
-  height: 48px;
-  border: 2px solid #555;
-  background-size: cover;
-  background-position: center;
-  border-radius: 2px;
-  box-shadow: 0 0 4px rgba(0,0,0,0.5);
+  width: 48px;
+  height: 48px;
+  border: 2px solid #555;
+  background-size: cover;
+  background-position: center;
+  border-radius: 2px;
+  box-shadow: 0 0 4px rgba(0,0,0,0.5);
 }
 
 .hotbar .slot.selected {
-  border-color: white;
-  transform: scale(1.1);
-  box-shadow: 0 0 6px rgba(255,255,255,0.8);
+  border-color: white;
+  transform: scale(1.1);
+  box-shadow: 0 0 6px rgba(255,255,255,0.8);
 }
 
 /* ================= INVENTORY ================= */
 .inventory {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 
-  display: grid;
-  grid-template-columns: repeat(9, 40px);
-  grid-auto-rows: 40px;
-  gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(9, 40px);
+  grid-auto-rows: 40px;
+  gap: 4px;
 
-  padding: 8px;
-  background: #c6c6c6; /* MC inventory gray */
-  border: 4px solid #373737;
-  box-shadow:
-    inset -2px -2px 0 #8b8b8b,
-    inset 2px 2px 0 #ffffff;
+  padding: 8px;
+  background: #c6c6c6; /* MC inventory gray */
+  border: 4px solid #373737;
+  box-shadow:
+    inset -2px -2px 0 #8b8b8b,
+    inset 2px 2px 0 #ffffff;
 
-  image-rendering: pixelated;
-  z-index: 200;
+  image-rendering: pixelated;
+  z-index: 200;
 }
 
 /* SLOT */
 .inventory .slot {
-  width: 40px;
-  height: 40px;
+  width: 40px;
+  height: 40px;
 
-  background-color: #8b8b8b;
-  background-size: 32px 32px;
-  background-repeat: no-repeat;
-  background-position: center;
+  background-color: #8b8b8b;
+  background-size: 32px 32px;
+  background-repeat: no-repeat;
+  background-position: center;
 
-  border: 2px solid #373737;
-  box-shadow:
-    inset -2px -2px 0 #5a5a5a,
-    inset 2px 2px 0 #bfbfbf;
+  border: 2px solid #373737;
+  box-shadow:
+    inset -2px -2px 0 #5a5a5a,
+    inset 2px 2px 0 #bfbfbf;
 
-  image-rendering: pixelated;
-  cursor: pointer;
+  image-rendering: pixelated;
+  cursor: pointer;
 }
 
 /* HOVER (very subtle in MC) */
 .inventory .slot:hover {
-  filter: brightness(1.05);
+  filter: brightness(1.05);
 }
 
 /* SELECTED SLOT (hotbar style) */
 .inventory .slot.selected {
-  border: 2px solid #ffffff;
-  box-shadow:
-    inset -2px -2px 0 #5a5a5a,
-    inset 2px 2px 0 #bfbfbf,
-    0 0 0 2px #ffffff;
+  border: 2px solid #ffffff;
+  box-shadow:
+    inset -2px -2px 0 #5a5a5a,
+    inset 2px 2px 0 #bfbfbf,
+    0 0 0 2px #ffffff;
 }
 
 
 /* ================= GENERAL ================= */
 body {
-  margin: 0;
-  overflow: hidden;
-  font-family: "Minecraft", sans-serif;
+  margin: 0;
+  overflow: hidden;
+  font-family: "Minecraft", sans-serif;
 }
 /* ===== Minecraft Menu Style ===== */
 .mc-menu {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  font-family: monospace;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-family: monospace;
 }
 
 .mc-panel {
-  background: #c6c6c6;
-  border: 4px solid #555;
-  padding: 20px;
-  width: 320px;
-  box-shadow: inset -4px -4px #8b8b8b, inset 4px 4px #ffffff;
+  background: #c6c6c6;
+  border: 4px solid #555;
+  padding: 20px;
+  width: 320px;
+  box-shadow: inset -4px -4px #8b8b8b, inset 4px 4px #ffffff;
 }
 
 .mc-title {
-  text-align: center;
-  font-size: 22px;
-  margin-bottom: 16px;
+  text-align: center;
+  font-size: 22px;
+  margin-bottom: 16px;
 }
 
 .mc-btn {
-  background: #b0b0b0;
-  border: 3px solid #555;
-  padding: 8px;
-  margin: 6px 0;
-  text-align: center;
-  cursor: pointer;
-  box-shadow: inset -2px -2px #7a7a7a, inset 2px 2px #ffffff;
+  background: #b0b0b0;
+  border: 3px solid #555;
+  padding: 8px;
+  margin: 6px 0;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: inset -2px -2px #7a7a7a, inset 2px 2px #ffffff;
 }
 
 .mc-btn:hover {
-  background: #d0d0d0;
+  background: #d0d0d0;
 }
 
 .mc-small {
-  font-size: 12px;
-  text-align: center;
-  margin-top: 10px;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 10px;
 }
 
 /* CROSSHAIR */
-  #crosshair {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 12px;
-    height: 12px;
-    margin-left: -6px;
-    margin-top: -6px;
-    pointer-events: none;
-  }
+  #crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    margin-top: -6px;
+    pointer-events: none;
+  }
 
-  #crosshair:before, #crosshair:after {
-    content: '';
-    position: absolute;
-    background: white;
-  }
+  #crosshair:before, #crosshair:after {
+    content: '';
+    position: absolute;
+    background: white;
+  }
 
-  #crosshair:before {
-    left: 50%;
-    top: 0;
-    width: 2px;
-    height: 100%;
-    margin-left: -1px;
-  }
+  #crosshair:before {
+    left: 50%;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    margin-left: -1px;
+  }
 
-  #crosshair:after {
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    margin-top: -1px;
-  }
+  #crosshair:after {
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    margin-top: -1px;
+  }
 </style>
 </head>
 <body>
@@ -181,16 +181,12 @@ body {
 <!-- Crosshair -->
 <div id="crosshair"></div>
 
-
-
-<script type="module" src="./game.js"></script>
 <script type="importmap">
 {
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/"
-  }
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.157.0/examples/jsm/"
+  }
 }
 </script>
-</body>
-</html>
+<script type="module" src="./game.js"></script>
