@@ -116,6 +116,7 @@ const tex = {
     grassSide: loader.load("../img/Grass.webp"),
     dirt: loader.load("../img/dirt.webp"),
     stone: loader.load("../img/Stone.jpg")
+    
 };
 
 Object.values(tex).forEach(t => {
