@@ -112,10 +112,10 @@ document.addEventListener("keydown", e => {
 /* ================= TEXTURES ================= */
 const loader = new THREE.TextureLoader();
 const tex = {
-    grassTop: loader.load("./Grass-top.PNG"),
-    grassSide: loader.load("./Grass.webp"),
-    dirt: loader.load("./dirt.webp"),
-    stone: loader.load("./Stone.jpg")
+    grassTop: loader.load("../img/Grass-top.PNG"),
+    grassSide: loader.load("../img/Grass.webp"),
+    dirt: loader.load("../img/dirt.webp"),
+    stone: loader.load("../img/Stone.jpg")
 };
 
 Object.values(tex).forEach(t => {
